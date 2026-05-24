@@ -1,0 +1,675 @@
+/* =========================================================
+   VITAL CARES - Componente UI reutilizabile
+   ========================================================= */
+
+/* ---------- CARD ---------- */
+.card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    margin-bottom: var(--sp-4);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: var(--sp-4) var(--sp-5);
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-50);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h2,
+.card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.card-body {
+    padding: var(--sp-5);
+}
+
+.card-footer {
+    padding: var(--sp-3) var(--sp-5);
+    border-top: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+
+/* Grid de carduri pentru dashboard */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--sp-4);
+    margin-bottom: var(--sp-5);
+}
+
+.stat-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: var(--sp-4) var(--sp-5);
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--primary);
+}
+
+.stat-card .stat-label {
+    color: var(--gray-600);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--sp-2);
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    line-height: 1;
+}
+
+.stat-card .stat-change {
+    margin-top: var(--sp-2);
+    font-size: 0.85rem;
+    color: var(--gray-500);
+}
+
+.stat-card.warning {
+    border-left-color: var(--warning);
+}
+
+.stat-card.danger {
+    border-left-color: var(--danger);
+}
+
+.stat-card.success {
+    border-left-color: var(--success);
+}
+
+/* ---------- BUTOANE ---------- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-4);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    background: var(--white);
+    color: var(--gray-700);
+    border-color: var(--gray-300);
+    user-select: none;
+}
+
+.btn:hover {
+    text-decoration: none;
+    background: var(--gray-50);
+}
+
+.btn:focus {
+    outline: 2px solid var(--primary-light);
+    outline-offset: 2px;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: var(--white);
+    border-color: var(--primary);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: white;
+}
+
+.btn-success {
+    background: var(--success);
+    color: var(--white);
+    border-color: var(--success);
+}
+
+.btn-success:hover {
+    background: #1b5e20;
+    color: white;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: var(--white);
+    border-color: var(--danger);
+}
+
+.btn-danger:hover {
+    background: #b71c1c;
+    color: white;
+}
+
+.btn-warning {
+    background: var(--warning);
+    color: var(--white);
+    border-color: var(--warning);
+}
+
+.btn-warning:hover {
+    background: #e65100;
+    color: white;
+}
+
+.btn-outline {
+    background: var(--white);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-outline:hover {
+    background: var(--primary-bg);
+}
+
+.btn-sm {
+    padding: 4px var(--sp-3);
+    font-size: 0.8rem;
+}
+
+.btn-lg {
+    padding: var(--sp-3) var(--sp-5);
+    font-size: 1rem;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.btn[disabled],
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ---------- TABELE ---------- */
+.table-wrapper {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.table thead th {
+    text-align: left;
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--gray-50);
+    color: var(--gray-700);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--gray-200);
+    white-space: nowrap;
+}
+
+.table tbody td {
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background: var(--gray-50);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table .actions {
+    white-space: nowrap;
+    text-align: right;
+}
+
+.table .actions .btn {
+    margin-left: var(--sp-1);
+}
+
+/* ---------- FORMS ---------- */
+.form-group {
+    margin-bottom: var(--sp-4);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--sp-4);
+    margin-bottom: var(--sp-4);
+}
+
+.form-label {
+    display: block;
+    margin-bottom: var(--sp-2);
+    font-weight: 500;
+    color: var(--gray-700);
+    font-size: 0.9rem;
+}
+
+.form-label .required {
+    color: var(--danger);
+    margin-left: 2px;
+}
+
+.form-control {
+    display: block;
+    width: 100%;
+    padding: var(--sp-3);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var(--gray-900);
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    font-family: inherit;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15);
+}
+
+.form-control:disabled {
+    background: var(--gray-100);
+    color: var(--gray-500);
+    cursor: not-allowed;
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+}
+
+select.form-control {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23757575'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right var(--sp-2) center;
+    background-size: 20px;
+    padding-right: var(--sp-6);
+    appearance: none;
+}
+
+.form-help {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    margin-top: var(--sp-1);
+}
+
+.form-error {
+    font-size: 0.85rem;
+    color: var(--danger);
+    margin-top: var(--sp-1);
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--sp-3);
+    margin-top: var(--sp-5);
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--gray-200);
+}
+
+/* ---------- BADGES ---------- */
+.badge {
+    display: inline-block;
+    padding: 2px var(--sp-2);
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-primary {
+    background: var(--primary-bg);
+    color: var(--primary-dark);
+}
+
+.badge-success {
+    background: var(--success-bg);
+    color: var(--success);
+}
+
+.badge-warning {
+    background: var(--warning-bg);
+    color: var(--warning);
+}
+
+.badge-danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+.badge-info {
+    background: var(--info-bg);
+    color: var(--info);
+}
+
+.badge-secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+/* ---------- ALERTE / FLASH MESSAGES ---------- */
+.flash {
+    padding: var(--sp-3) var(--sp-4);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--sp-4);
+    border-left: 4px solid;
+    font-size: 0.9rem;
+}
+
+.flash-success {
+    background: var(--success-bg);
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.flash-error {
+    background: var(--danger-bg);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.flash-warning {
+    background: var(--warning-bg);
+    border-color: var(--warning);
+    color: var(--warning);
+}
+
+.flash-info {
+    background: var(--info-bg);
+    border-color: var(--info);
+    color: var(--info);
+}
+
+/* ---------- ALERTE MEDICALE (alarme pacient) ---------- */
+.alarm-row {
+    border-left: 4px solid var(--danger);
+}
+
+.alarm-critical {
+    background: var(--danger-bg) !important;
+}
+
+.alarm-warning {
+    background: var(--warning-bg) !important;
+}
+
+/* Valori vitale */
+.vital-value {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.vital-value.normal {
+    color: var(--success);
+}
+
+.vital-value.warning {
+    color: var(--warning);
+}
+
+.vital-value.danger {
+    color: var(--danger);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* ---------- LOGIN PAGE ---------- */
+.login-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: var(--sp-7) var(--sp-6);
+    width: 100%;
+    max-width: 420px;
+}
+
+.login-card .logo-section {
+    text-align: center;
+    margin-bottom: var(--sp-5);
+}
+
+.login-card .logo-section h1 {
+    color: var(--primary);
+    font-size: 1.75rem;
+    margin-bottom: var(--sp-1);
+}
+
+.login-card .logo-section p {
+    color: var(--gray-600);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.login-card .logo-circle {
+    width: 70px;
+    height: 70px;
+    background: var(--primary-bg);
+    color: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto var(--sp-4);
+}
+
+/* ---------- EMPTY STATE ---------- */
+.empty-state {
+    text-align: center;
+    padding: var(--sp-7) var(--sp-5);
+    color: var(--gray-500);
+}
+
+.empty-state .empty-icon {
+    font-size: 3rem;
+    opacity: 0.4;
+    margin-bottom: var(--sp-3);
+}
+
+.empty-state h3 {
+    color: var(--gray-600);
+    margin-bottom: var(--sp-2);
+}
+
+/* ---------- PATIENT CARD (refolosibil) ---------- */
+.patient-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: var(--sp-4);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+}
+
+.patient-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--primary-bg);
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.patient-info {
+    flex-grow: 1;
+}
+
+.patient-info .patient-name {
+    font-weight: 600;
+    color: var(--gray-900);
+    font-size: 1rem;
+}
+
+.patient-info .patient-meta {
+    color: var(--gray-600);
+    font-size: 0.85rem;
+}
+
+/* ---------- VITAL WIDGET (dashboard pacient) ---------- */
+.vitals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-4);
+}
+
+.vital-widget {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: var(--sp-4);
+    text-align: center;
+    border: 1px solid var(--gray-200);
+}
+
+.vital-widget .vital-icon {
+    font-size: 1.5rem;
+    margin-bottom: var(--sp-2);
+}
+
+.vital-widget .vital-label {
+    color: var(--gray-600);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--sp-1);
+}
+
+.vital-widget .vital-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    line-height: 1;
+}
+
+.vital-widget .vital-unit {
+    color: var(--gray-500);
+    font-size: 0.85rem;
+    margin-left: 2px;
+}
+
+.vital-widget .vital-time {
+    color: var(--gray-400);
+    font-size: 0.7rem;
+    margin-top: var(--sp-1);
+}
+
+/* ---------- SEARCH BAR ---------- */
+.search-bar {
+    display: flex;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-4);
+}
+
+.search-bar .form-control {
+    flex-grow: 1;
+}
+
+/* ---------- TAB-uri ---------- */
+.tabs {
+    display: flex;
+    border-bottom: 2px solid var(--gray-200);
+    margin-bottom: var(--sp-4);
+    gap: var(--sp-1);
+}
+
+.tabs .tab {
+    padding: var(--sp-3) var(--sp-4);
+    color: var(--gray-600);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+.tabs .tab:hover {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.tabs .tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    font-weight: 600;
+}
+
+/* ---------- DEFINIȚII (key-value) ---------- */
+.dl-grid {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: var(--sp-2) var(--sp-4);
+}
+
+.dl-grid dt {
+    color: var(--gray-600);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dl-grid dd {
+    color: var(--gray-900);
+}
+
+/* ---------- PRINT ---------- */
+@media print {
+
+    .app-header,
+    .app-sidebar,
+    .page-actions,
+    .btn {
+        display: none !important;
+    }
+
+    .app-main {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+    }
+}
