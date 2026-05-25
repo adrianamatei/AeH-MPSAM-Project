@@ -27,10 +27,6 @@ function getVitalClass($valoare, $tipParametru, $praguri) {
             if ($valoare > $praguri['max_puls'] || $valoare < $praguri['min_puls']) return 'danger';
             if ($valoare > $praguri['max_puls'] * 0.95 || $valoare < $praguri['min_puls'] * 1.05) return 'warning';
             return 'normal';
-        case 'spo2':
-            if ($valoare < $praguri['min_spo2']) return 'danger';
-            if ($valoare < $praguri['min_spo2'] + 2) return 'warning';
-            return 'normal';
         case 'temperatura':
             if ($valoare > $praguri['max_temp']) return 'danger';
             if ($valoare > $praguri['max_temp'] - 0.5) return 'warning';
@@ -81,10 +77,10 @@ renderFlash();
         <?php else: ?>
             <div class="vitals-grid">
                 <?php 
-                $iconuri = ['puls' => '❤', 'spo2' => '💨', 'temperatura' => '🌡'];
-                $unitati = ['puls' => 'bpm', 'spo2' => '%', 'temperatura' => '°C'];
-                $labeluri = ['puls' => 'Puls', 'spo2' => 'Saturație O₂', 'temperatura' => 'Temperatură'];
-                foreach (['puls', 'spo2', 'temperatura'] as $tip):
+                $iconuri = ['puls' => '❤', 'temperatura' => '🌡'];
+                $unitati = ['puls' => 'bpm', 'temperatura' => '°C'];
+                $labeluri = ['puls' => 'Puls', 'temperatura' => 'Temperatură'];
+                foreach (['puls', 'temperatura'] as $tip):
                     $m = $ultimeleValori[$tip] ?? null;
                     if (!$m) continue;
                     $cls = getVitalClass($m['valoare'], $tip, $praguri);
@@ -104,7 +100,6 @@ renderFlash();
             <div class="text-small text-muted mt-3">
                 Praguri personalizate: 
                 Puls <?= e($praguri['min_puls']) ?>-<?= e($praguri['max_puls']) ?> bpm,
-                SpO₂ min <?= e($praguri['min_spo2']) ?>%,
                 Temp max <?= e($praguri['max_temp']) ?>°C
             </div>
         <?php endif; ?>

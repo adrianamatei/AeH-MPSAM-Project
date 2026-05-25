@@ -84,10 +84,10 @@ renderFlash();
     <div class="card-body">
         <div class="vitals-grid">
             <?php 
-            $iconuri = ['puls' => '❤', 'spo2' => '💨', 'temperatura' => '🌡'];
-            $unitati = ['puls' => 'bpm', 'spo2' => '%', 'temperatura' => '°C'];
-            $labeluri = ['puls' => 'Puls', 'spo2' => 'Saturație O₂', 'temperatura' => 'Temperatură'];
-            foreach (['puls', 'spo2', 'temperatura'] as $tip):
+            $iconuri = ['puls' => '❤', 'temperatura' => '🌡'];
+            $unitati = ['puls' => 'bpm', 'temperatura' => '°C'];
+            $labeluri = ['puls' => 'Puls', 'temperatura' => 'Temperatură'];
+            foreach (['puls', 'temperatura'] as $tip):
                 if (!isset($ultimeleValori[$tip])) continue;
                 $m = $ultimeleValori[$tip];
             ?>
@@ -161,10 +161,6 @@ renderFlash();
             <div class="vital-widget">
                 <div class="vital-label">Puls max</div>
                 <div class="vital-number"><?= e($praguri['max_puls']) ?> <span class="vital-unit">bpm</span></div>
-            </div>
-            <div class="vital-widget">
-                <div class="vital-label">SpO₂ min</div>
-                <div class="vital-number"><?= e($praguri['min_spo2']) ?> <span class="vital-unit">%</span></div>
             </div>
             <div class="vital-widget">
                 <div class="vital-label">Temp max</div>

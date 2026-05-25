@@ -33,7 +33,7 @@ if ($user['rol'] === 'pacient') {
                             <tr>
                                 <td><?= e(PacientRepo::fullName($p)) ?> (<?= e($p['varsta']) ?> ani)</td>
                                 <td class="text-small">
-                                    <?php foreach (['puls' => 'bpm', 'spo2' => '%', 'temperatura' => '°C'] as $tip => $u): ?>
+                                    <?php foreach (['puls' => 'bpm', 'temperatura' => '°C'] as $tip => $u): ?>
                                         <?php if (isset($ult[$tip])): ?>
                                             <span class="badge badge-secondary"><?= e(strtoupper($tip)) ?>: <?= e($ult[$tip]['valoare']) ?><?= e($u) ?></span>
                                         <?php endif; ?>
@@ -67,7 +67,6 @@ $startDate = date('Y-m-d H:i:s', strtotime('-24 hours'));
 $endDate = date('Y-m-d H:i:s');
 
 $pulsData = MasuratoriRepo::findByPacientInterval($idPacient, $startDate, $endDate, 'puls');
-$spo2Data = MasuratoriRepo::findByPacientInterval($idPacient, $startDate, $endDate, 'spo2');
 $tempData = MasuratoriRepo::findByPacientInterval($idPacient, $startDate, $endDate, 'temperatura');
 
 $praguri = PraguriRepo::findByPacient($idPacient);
@@ -81,7 +80,6 @@ function chartData($data) {
     ];
 }
 $pulsChart = chartData($pulsData);
-$spo2Chart = chartData($spo2Data);
 $tempChart = chartData($tempData);
 
 renderHeader('Monitorizare: ' . PacientRepo::fullName($pacient), 'monitorizare');
@@ -112,7 +110,6 @@ renderFlash();
             </div>
             <div class="text-small text-muted text-right">
                 Praguri: Puls <?= e($praguri['min_puls']) ?>-<?= e($praguri['max_puls']) ?> · 
-                SpO₂ min <?= e($praguri['min_spo2']) ?>% · 
                 Temp max <?= e($praguri['max_temp']) ?>°C
             </div>
         </div>
@@ -122,10 +119,10 @@ renderFlash();
 <!-- Ultimele valori -->
 <div class="vitals-grid">
     <?php 
-    $iconuri = ['puls' => '❤', 'spo2' => '💨', 'temperatura' => '🌡'];
-    $unitati = ['puls' => 'bpm', 'spo2' => '%', 'temperatura' => '°C'];
-    $labels = ['puls' => 'Puls', 'spo2' => 'Saturație O₂', 'temperatura' => 'Temperatură'];
-    foreach (['puls', 'spo2', 'temperatura'] as $tip): 
+    $iconuri = ['puls' => '❤', 'temperatura' => '🌡'];
+    $unitati = ['puls' => 'bpm', 'temperatura' => '°C'];
+    $labels = ['puls' => 'Puls', 'temperatura' => 'Temperatură'];
+    foreach (['puls', 'temperatura'] as $tip): 
         $m = $ultimeleValori[$tip] ?? null;
     ?>
         <div class="vital-widget">
@@ -151,13 +148,6 @@ renderFlash();
 </div>
 
 <div class="card">
-    <div class="card-header"><h3>📈 Evoluție SpO₂ (ultimele 24h)</h3></div>
-    <div class="card-body">
-        <canvas id="chartSpo2" height="80"></canvas>
-    </div>
-</div>
-
-<div class="card">
     <div class="card-header"><h3>📈 Evoluție temperatură (ultimele 24h)</h3></div>
     <div class="card-body">
         <canvas id="chartTemp" height="80"></canvas>
@@ -175,15 +165,6 @@ const charts = {
         unit: 'bpm',
         min: <?= e($praguri['min_puls']) ?>,
         max: <?= e($praguri['max_puls']) ?>
-    },
-    spo2: {
-        canvas: 'chartSpo2',
-        labels: <?= json_encode($spo2Chart['labels']) ?>,
-        values: <?= json_encode($spo2Chart['values']) ?>,
-        color: '#1976d2',
-        unit: '%',
-        min: <?= e($praguri['min_spo2']) ?>,
-        max: 100
     },
     temp: {
         canvas: 'chartTemp',

@@ -77,7 +77,6 @@ renderFlash();
                     <select name="tip_alarma" class="form-control" required>
                         <option value="">— Selectează —</option>
                         <option value="puls">Puls</option>
-                        <option value="spo2">SpO₂ (saturație oxigen)</option>
                         <option value="temperatura">Temperatură</option>
                         <option value="ecg">ECG</option>
                     </select>

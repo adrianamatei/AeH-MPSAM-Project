@@ -13,7 +13,6 @@ if (!$pacient || !medicCanAccessPacient($idPacient)) {
 $startDate = date('Y-m-d H:i:s', strtotime('-24 hours'));
 $endDate = date('Y-m-d H:i:s');
 $pulsData = MasuratoriRepo::findByPacientInterval($idPacient, $startDate, $endDate, 'puls');
-$spo2Data = MasuratoriRepo::findByPacientInterval($idPacient, $startDate, $endDate, 'spo2');
 $tempData = MasuratoriRepo::findByPacientInterval($idPacient, $startDate, $endDate, 'temperatura');
 
 function statistics($data) {
@@ -27,7 +26,6 @@ function statistics($data) {
     ];
 }
 $pulsStats = statistics($pulsData);
-$spo2Stats = statistics($spo2Data);
 $tempStats = statistics($tempData);
 $praguri = PraguriRepo::findByPacient($idPacient);
 ?>
@@ -76,15 +74,6 @@ $praguri = PraguriRepo::findByPacient($idPacient);
             <td><?= e($pulsStats['count']) ?></td>
             <td><?= e($praguri['min_puls']) ?></td>
             <td><?= e($praguri['max_puls']) ?></td>
-        </tr>
-        <tr>
-            <td><strong>SpO₂ (%)</strong></td>
-            <td><?= e($spo2Stats['min']) ?></td>
-            <td><?= e($spo2Stats['max']) ?></td>
-            <td><?= e($spo2Stats['avg']) ?></td>
-            <td><?= e($spo2Stats['count']) ?></td>
-            <td><?= e($praguri['min_spo2']) ?></td>
-            <td>100</td>
         </tr>
         <tr>
             <td><strong>Temperatură (°C)</strong></td>

@@ -72,7 +72,7 @@ renderFlash();
                 <div class="form-group">
                     <label class="form-label">Tip alarmă</label>
                     <select name="tip_alarma" class="form-control" required>
-                        <?php foreach (['puls', 'spo2', 'temperatura', 'ecg'] as $tip): ?>
+                        <?php foreach (['puls', 'temperatura', 'ecg'] as $tip): ?>
                             <option value="<?= e($tip) ?>" <?= selected($d['tip_alarma'], $tip) ?>>
                                 <?= e(strtoupper($tip)) ?>
                             </option>

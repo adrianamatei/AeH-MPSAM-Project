@@ -123,7 +123,6 @@ class PacientRepo {
                 'id_pacient' => $newId,
                 'max_puls' => 93.0,
                 'min_puls' => 68.0,
-                'min_spo2' => 95.0,
                 'max_temp' => 38.5,
             ];
             return $newId;

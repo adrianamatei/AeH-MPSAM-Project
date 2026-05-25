@@ -358,7 +358,6 @@ foreach ($GLOBALS['MOCK_PACIENT'] as $id => $p) {
         'id_pacient' => $id,
         'max_puls' => 93.0,
         'min_puls' => 68.0,
-        'min_spo2' => 95.0,
         'max_temp' => 38.5,
     ];
 }
@@ -551,7 +550,6 @@ foreach ($GLOBALS['MOCK_PACIENT'] as $idPacient => $pacient) {
         // Valori realiste cu variație ușoară
         $pulsBase = rand(65, 88);
         $tempBase = round(36.2 + (rand(0, 12) / 10), 1);
-        $spo2Base = rand(94, 99);
         
         $GLOBALS['MOCK_MASURATORI'][$measureId++] = [
             'id_masurare' => $measureId,
@@ -567,14 +565,6 @@ foreach ($GLOBALS['MOCK_PACIENT'] as $idPacient => $pacient) {
             'tip_parametru' => 'temperatura',
             'valoare' => $tempBase,
             'unitate_masurata' => '°C',
-            'moment_inregistrare' => $timestamp,
-        ];
-        $GLOBALS['MOCK_MASURATORI'][$measureId++] = [
-            'id_masurare' => $measureId,
-            'id_pacient' => $idPacient,
-            'tip_parametru' => 'spo2',
-            'valoare' => $spo2Base,
-            'unitate_masurata' => '%',
             'moment_inregistrare' => $timestamp,
         ];
     }
@@ -598,13 +588,13 @@ $GLOBALS['MOCK_ALARME'] = [
     2 => [
         'id' => 2,
         'id_pacient' => 3,
-        'tip_alarma' => 'spo2',
-        'valoare_declansare' => 91.5,
-        'prag_minim' => 95.0,
-        'prag_maxim' => 100.0,
+        'tip_alarma' => 'temperatura',
+        'valoare_declansare' => 38.9,
+        'prag_minim' => 35.0,
+        'prag_maxim' => 38.5,
         'moment_declansare' => '2026-05-23 22:15:30',
         'durata_persistenta' => 120,
-        'mesaj' => 'Saturație O2 scăzută. BPOC - exacerbare posibilă.',
+        'mesaj' => 'Temperatură crescută. Posibilă infecție respiratorie.',
     ],
     3 => [
         'id' => 3,
@@ -662,7 +652,7 @@ foreach ($GLOBALS['MOCK_PACIENT'] as $idPacient => $pacient) {
         'tip_dispozitiv' => 'senzor',
         'id_pacient' => $idPacient,
         'stare' => rand(0, 10) > 1 ? 'activ' : 'inactiv',
-        'detalii' => 'ESP32 + MAX30100 (puls/SpO2) + DHT11 (temp) + AD8232 (ECG)',
+        'detalii' => 'ESP32 + MAX30100 (puls) + DHT11 (temp/umiditate) + AD8232 (ECG)',
     ];
     $devId++;
 }

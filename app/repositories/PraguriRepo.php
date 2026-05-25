@@ -1,7 +1,7 @@
 <?php
 /**
  * Repository pentru tabela PraguriPacient (din SQL-ul lui Darius)
- * Câmpuri: id_pacient (PK, FK), max_puls, min_puls, min_spo2, max_temp
+ * Câmpuri: id_pacient (PK, FK), max_puls, min_puls, max_temp
  */
 class PraguriRepo {
     
@@ -23,7 +23,6 @@ class PraguriRepo {
             'id_pacient' => $idPacient,
             'max_puls' => 93.0,
             'min_puls' => 68.0,
-            'min_spo2' => 95.0,
             'max_temp' => 38.5,
         ];
     }
@@ -48,25 +47,23 @@ class PraguriRepo {
         if ($exists->fetch()) {
             // UPDATE
             $stmt = db()->prepare('UPDATE PraguriPacient SET 
-                max_puls = ?, min_puls = ?, min_spo2 = ?, max_temp = ?
+                max_puls = ?, min_puls = ?, max_temp = ?
                 WHERE id_pacient = ?');
             return $stmt->execute([
                 $data['max_puls'] ?? 93.0,
                 $data['min_puls'] ?? 68.0,
-                $data['min_spo2'] ?? 95.0,
                 $data['max_temp'] ?? 38.5,
                 $idPacient,
             ]);
         } else {
             // INSERT
             $stmt = db()->prepare('INSERT INTO PraguriPacient 
-                (id_pacient, max_puls, min_puls, min_spo2, max_temp)
-                VALUES (?, ?, ?, ?, ?)');
+                (id_pacient, max_puls, min_puls, max_temp)
+                VALUES (?, ?, ?, ?)');
             return $stmt->execute([
                 $idPacient,
                 $data['max_puls'] ?? 93.0,
                 $data['min_puls'] ?? 68.0,
-                $data['min_spo2'] ?? 95.0,
                 $data['max_temp'] ?? 38.5,
             ]);
         }

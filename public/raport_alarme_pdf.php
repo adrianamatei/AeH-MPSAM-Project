@@ -42,7 +42,6 @@ logCurrentUserAction('VIEW', 'Alarme', null, 'Generare raport PDF alarme');
         th, td { border: 1px solid #ccc; padding: 5px; text-align: left; vertical-align: top; }
         th { background: #f5f5f5; }
         .tip-puls { background: #ffebee; }
-        .tip-spo2 { background: #e3f2fd; }
         .tip-temperatura, .tip-temp { background: #fff8e1; }
         .no-print { margin: 20px; }
         @media print { .no-print { display: none; } }

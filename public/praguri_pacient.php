@@ -18,7 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = [
         'max_puls' => (float)$_POST['max_puls'],
         'min_puls' => (float)$_POST['min_puls'],
-        'min_spo2' => (float)$_POST['min_spo2'],
         'max_temp' => (float)$_POST['max_temp'],
     ];
     
@@ -26,9 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors = [];
     if ($data['min_puls'] >= $data['max_puls']) {
         $errors[] = 'Pulsul minim trebuie să fie mai mic decât maxim.';
-    }
-    if ($data['min_spo2'] < 80 || $data['min_spo2'] > 100) {
-        $errors[] = 'SpO₂ minim trebuie între 80 și 100.';
     }
     if ($data['max_temp'] < 35 || $data['max_temp'] > 42) {
         $errors[] = 'Temperatura maximă trebuie între 35 și 42°C.';
@@ -93,12 +89,6 @@ renderFlash();
             
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">💨 SpO₂ minim (%)</label>
-                    <input type="number" name="min_spo2" class="form-control" 
-                           value="<?= e($praguri['min_spo2']) ?>" step="0.1" min="80" max="100" required>
-                    <div class="form-help">Sub această valoare se declanșează alarmă de hipoxie</div>
-                </div>
-                <div class="form-group">
                     <label class="form-label">🌡 Temperatură maximă (°C)</label>
                     <input type="number" name="max_temp" class="form-control" 
                            value="<?= e($praguri['max_temp']) ?>" step="0.1" min="35" max="42" required>
@@ -123,7 +113,6 @@ renderFlash();
             </thead>
             <tbody>
                 <tr><td>Puls</td><td>60-100 bpm</td><td>60-90 bpm</td><td>68-93 bpm</td></tr>
-                <tr><td>SpO₂</td><td>≥95%</td><td>≥93%</td><td>≥95%</td></tr>
                 <tr><td>Temperatură</td><td>36.1-37.2°C</td><td>36.0-37.0°C</td><td>max 38.5°C</td></tr>
             </tbody>
         </table>
