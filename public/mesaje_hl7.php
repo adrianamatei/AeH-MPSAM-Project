@@ -35,7 +35,6 @@ renderFlash();
     </div>
 <?php else: ?>
     <?php foreach ($mesaje as $m):
-        $pacient = $m['id_pacient'] ? PacientRepo::findById($m['id_pacient']) : null;
         $isPrimit = stripos($m['tip_mesaj'], 'trimitere') !== false;
     ?>
         <div class="card">
@@ -44,9 +43,6 @@ renderFlash();
                     <h3><?= $isPrimit ? '📥' : '📤' ?> <?= e($m['tip_mesaj']) ?></h3>
                     <div class="text-small text-muted mt-1">
                         <?= e(formatDateTime($m['moment_transmitere'])) ?>
-                        <?php if ($pacient): ?>
-                            · Pacient: <a href="<?= url('pacient_detalii.php?id=' . $pacient['id']) ?>"><?= e(PacientRepo::fullName($pacient)) ?></a>
-                        <?php endif; ?>
                     </div>
                 </div>
             </div>

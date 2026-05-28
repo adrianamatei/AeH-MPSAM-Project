@@ -56,7 +56,6 @@ renderFlash();
             <dt>Nume</dt><dd><?= e(MedicRepo::fullName($medic)) ?></dd>
             <dt>Specializare</dt><dd><?= e($medic['specializare']) ?></dd>
             <dt>Telefon</dt><dd><?= e($medic['telefon']) ?></dd>
-            <dt>Email</dt><dd><?= e($medic['email']) ?></dd>
         </dl>
     </div>
 </div>

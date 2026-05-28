@@ -35,8 +35,8 @@ logCurrentUserAction('VIEW', 'Alarme', null, 'Generare raport PDF alarme');
     <style>
         @page { margin: 1.5cm; }
         body { font-family: Arial, sans-serif; font-size: 11pt; color: #000; line-height: 1.4; }
-        h1 { color: #1976d2; border-bottom: 2px solid #1976d2; padding-bottom: 8px; font-size: 18pt; }
-        h2 { color: #1565c0; font-size: 13pt; margin-top: 20px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+        h1 { color: #0D7C5F; border-bottom: 2px solid #0D7C5F; padding-bottom: 8px; font-size: 18pt; }
+        h2 { color: #0A6B51; font-size: 13pt; margin-top: 20px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
         .meta { color: #666; font-size: 9pt; }
         table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10pt; }
         th, td { border: 1px solid #ccc; padding: 5px; text-align: left; vertical-align: top; }
@@ -50,7 +50,7 @@ logCurrentUserAction('VIEW', 'Alarme', null, 'Generare raport PDF alarme');
 <body>
 
 <div class="no-print">
-    <button onclick="window.print()" style="padding:10px 20px; background:#1976d2; color:white; border:none; cursor:pointer;">
+    <button onclick="window.print()" style="padding:10px 20px; background:#0D7C5F; color:white; border:none; cursor:pointer;">
         🖨 Tipărește / Salvează ca PDF
     </button>
     <a href="<?= url('rapoarte.php') ?>" style="margin-left:10px;">← Înapoi</a>

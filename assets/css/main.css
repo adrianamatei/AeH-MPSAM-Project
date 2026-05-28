@@ -9,10 +9,10 @@
 /* ── CSS VARIABLES ── */
 :root {
     /* Primary — Medical Trust Blue */
-    --primary: #0F4C81;
-    --primary-hover: #0A3A66;
-    --primary-light: #E8F0FE;
-    --primary-50: #f0f5ff;
+    --primary: #0D7C5F;
+    --primary-hover: #0A6B51;
+    --primary-light: #E6F5F0;
+    --primary-50: #f0faf7;
 
     /* Semantic */
     --success: #0D7C5F;
@@ -124,7 +124,7 @@ img {
     justify-content: space-between;
     padding: 0 var(--sp-8);
     background: var(--white);
-    border-bottom: 1px solid var(--gray-100);
+    border-bottom: 2px solid var(--primary-light);
     box-shadow: var(--shadow-xs);
     z-index: 100;
     position: sticky;
@@ -147,11 +147,24 @@ img {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--primary), #1A6FB5);
+    background: linear-gradient(135deg, var(--primary), #10A37F);
     color: white;
     border-radius: var(--radius-sm);
     font-size: 1.1rem;
-    box-shadow: 0 2px 8px rgba(15, 76, 129, .3);
+    box-shadow: 0 2px 8px rgba(13, 124, 95, .3);
+    animation: logoPulse 3s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 2px 8px rgba(13, 124, 95, .3);
+    }
+
+    50% {
+        box-shadow: 0 2px 16px rgba(13, 124, 95, .5);
+    }
 }
 
 .header-right {
@@ -197,7 +210,7 @@ img {
 /* ── SIDEBAR ── */
 .app-sidebar {
     grid-area: sidebar;
-    background: var(--white);
+    background: linear-gradient(180deg, var(--white) 0%, #f0faf7 100%);
     border-right: 1px solid var(--gray-100);
     padding: var(--sp-6) 0;
     overflow-y: auto;
@@ -256,6 +269,9 @@ img {
     padding: var(--sp-8);
     min-width: 0;
     max-width: 1400px;
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M0,30 L15,30 L20,15 L25,45 L30,25 L35,35 L40,30 L60,30' fill='none' stroke='%230D7C5F' stroke-width='0.3' opacity='0.06'/%3E%3C/svg%3E") repeat,
+        var(--gray-50);
 }
 
 .app-main-full {
@@ -263,7 +279,47 @@ img {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, #0F4C81 0%, #1A6FB5 50%, #0D7C5F 100%);
+    background: linear-gradient(135deg, #0D7C5F 0%, #10A37F 40%, #0A6B51 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* ECG heartbeat line animat pe fundal login */
+.app-main-full::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -100%;
+    width: 300%;
+    height: 120px;
+    transform: translateY(-50%);
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120'%3E%3Cpath d='M0,60 L200,60 L220,60 L240,20 L260,100 L280,40 L300,80 L320,60 L500,60 L520,60 L540,15 L560,105 L580,35 L600,85 L620,60 L800,60 L820,60 L840,20 L860,100 L880,40 L900,80 L920,60 L1100,60 L1120,60 L1140,20 L1160,100 L1180,40 L1200,60' fill='none' stroke='rgba(255,255,255,0.25)' stroke-width='3'/%3E%3C/svg%3E") repeat-x;
+    background-size: 1200px 120px;
+    animation: ecgScroll 8s linear infinite;
+}
+
+.app-main-full::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        radial-gradient(ellipse at 20% 50%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(0, 0, 0, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+@keyframes ecgScroll {
+    0% {
+        transform: translateY(-50%) translateX(0);
+    }
+
+    100% {
+        transform: translateY(-50%) translateX(-1200px);
+    }
 }
 
 /* ── FOOTER ── */
@@ -272,8 +328,8 @@ img {
     text-align: center;
     font-size: 0.8rem;
     color: var(--text-muted);
-    border-top: 1px solid var(--gray-100);
-    background: var(--white);
+    border-top: 2px solid var(--primary-light);
+    background: linear-gradient(180deg, var(--white), #f5fbf9);
     margin-top: auto;
 }
 

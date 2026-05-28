@@ -1,10 +1,9 @@
 <?php
 /**
- * Repository pentru tabela Pacient (singular, ca în CREATE-ul lui Darius)
- * 
- * Câmpuri: id, id_utilizator, id_medic, nume, prenume, cnp, varsta,
- *          strada, oras, judet, telefon, email, profesie, loc_de_munca,
- *          istoric_medical, alergii
+ * Repository: Pacient
+ * Azure: id, id_medic, nume, prenume, varsta, CNP, strada, oras, judet, telefon,
+ *        profesie, loc_de_munca, istoric_medical, alergii, id_utilizator
+ * ATENȚIE: CNP e cu majuscule în Azure
  */
 class PacientRepo {
     
@@ -12,113 +11,84 @@ class PacientRepo {
         if (isMockMode()) {
             return $GLOBALS['MOCK_PACIENT'][$id] ?? null;
         }
-        
-        $stmt = db()->prepare('SELECT * FROM Pacient WHERE id = ?');
+        $stmt = db()->prepare('SELECT *, CNP as cnp FROM Pacient WHERE id = ?');
         $stmt->execute([$id]);
         return $stmt->fetch() ?: null;
     }
     
     public static function findByUtilizator($idUtilizator) {
         if (isMockMode()) {
-            foreach ($GLOBALS['MOCK_PACIENT'] as $pacient) {
-                if ($pacient['id_utilizator'] == $idUtilizator) {
-                    return $pacient;
-                }
+            foreach ($GLOBALS['MOCK_PACIENT'] as $p) {
+                if (($p['id_utilizator'] ?? null) == $idUtilizator) return $p;
             }
             return null;
         }
-        
-        $stmt = db()->prepare('SELECT * FROM Pacient WHERE id_utilizator = ?');
+        $stmt = db()->prepare('SELECT *, CNP as cnp FROM Pacient WHERE id_utilizator = ?');
         $stmt->execute([$idUtilizator]);
         return $stmt->fetch() ?: null;
     }
     
-    public static function findByCnp($cnp) {
-        if (isMockMode()) {
-            foreach ($GLOBALS['MOCK_PACIENT'] as $pacient) {
-                if ($pacient['cnp'] === $cnp) {
-                    return $pacient;
-                }
-            }
-            return null;
-        }
-        
-        $stmt = db()->prepare('SELECT * FROM Pacient WHERE cnp = ?');
-        $stmt->execute([$cnp]);
-        return $stmt->fetch() ?: null;
-    }
-    
-    /**
-     * Toți pacienții
-     */
-    public static function all() {
-        if (isMockMode()) {
-            return array_values($GLOBALS['MOCK_PACIENT']);
-        }
-        
-        return db()->query('SELECT * FROM Pacient ORDER BY nume, prenume')->fetchAll();
-    }
-    
-    /**
-     * Pacienții asociați unui medic
-     */
     public static function findByMedic($idMedic) {
         if (isMockMode()) {
-            return array_values(array_filter($GLOBALS['MOCK_PACIENT'], function($p) use ($idMedic) {
-                return $p['id_medic'] == $idMedic;
-            }));
+            return array_values(array_filter($GLOBALS['MOCK_PACIENT'], 
+                fn($p) => $p['id_medic'] == $idMedic));
         }
-        
-        $stmt = db()->prepare('SELECT * FROM Pacient WHERE id_medic = ? ORDER BY nume, prenume');
+        $stmt = db()->prepare('SELECT *, CNP as cnp FROM Pacient WHERE id_medic = ? ORDER BY nume, prenume');
         $stmt->execute([$idMedic]);
         return $stmt->fetchAll();
     }
     
-    /**
-     * Caută pacienți după text (nume, prenume, CNP)
-     */
-    public static function search($query, $idMedic = null) {
-        $query = mb_strtolower(trim($query));
-        if (empty($query)) {
-            return $idMedic ? self::findByMedic($idMedic) : self::all();
-        }
-        
+    public static function findByCnp($cnp) {
         if (isMockMode()) {
-            $source = $idMedic ? self::findByMedic($idMedic) : self::all();
-            return array_values(array_filter($source, function($p) use ($query) {
-                $haystack = mb_strtolower(
-                    ($p['nume'] ?? '') . ' ' . 
-                    ($p['prenume'] ?? '') . ' ' . 
-                    ($p['cnp'] ?? '')
-                );
-                return mb_strpos($haystack, $query) !== false;
+            foreach ($GLOBALS['MOCK_PACIENT'] as $p) {
+                if ($p['cnp'] == $cnp) return $p;
+            }
+            return null;
+        }
+        $stmt = db()->prepare('SELECT *, CNP as cnp FROM Pacient WHERE CNP = ?');
+        $stmt->execute([$cnp]);
+        return $stmt->fetch() ?: null;
+    }
+    
+    public static function search($query, $idMedic = null) {
+        if (isMockMode()) {
+            $q = mb_strtolower($query);
+            return array_values(array_filter($GLOBALS['MOCK_PACIENT'], function($p) use ($q, $idMedic) {
+                if ($idMedic && $p['id_medic'] != $idMedic) return false;
+                return str_contains(mb_strtolower($p['nume'] . ' ' . $p['prenume'] . ' ' . $p['cnp']), $q);
             }));
         }
-        
-        $sql = 'SELECT * FROM Pacient WHERE 
-                (LOWER(nume) LIKE ? OR LOWER(prenume) LIKE ? OR cnp LIKE ?)';
-        $params = ["%{$query}%", "%{$query}%", "%{$query}%"];
-        
+        $like = '%' . $query . '%';
+        $sql = 'SELECT *, CNP as cnp FROM Pacient WHERE (nume LIKE ? OR prenume LIKE ? OR CNP LIKE ?)';
+        $params = [$like, $like, $like];
         if ($idMedic) {
             $sql .= ' AND id_medic = ?';
             $params[] = $idMedic;
         }
         $sql .= ' ORDER BY nume, prenume';
-        
         $stmt = db()->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
     
-    /**
-     * Adaugă un pacient nou
-     */
+    public static function count($idMedic = null) {
+        if (isMockMode()) {
+            if (!$idMedic) return count($GLOBALS['MOCK_PACIENT']);
+            return count(array_filter($GLOBALS['MOCK_PACIENT'], fn($p) => $p['id_medic'] == $idMedic));
+        }
+        if ($idMedic) {
+            $stmt = db()->prepare('SELECT COUNT(*) FROM Pacient WHERE id_medic = ?');
+            $stmt->execute([$idMedic]);
+            return (int)$stmt->fetchColumn();
+        }
+        return (int)db()->query('SELECT COUNT(*) FROM Pacient')->fetchColumn();
+    }
+    
     public static function insert($data) {
         if (isMockMode()) {
-            $newId = max(array_keys($GLOBALS['MOCK_PACIENT'])) + 1;
+            $newId = empty($GLOBALS['MOCK_PACIENT']) ? 1 : max(array_keys($GLOBALS['MOCK_PACIENT'])) + 1;
             $data['id'] = $newId;
             $GLOBALS['MOCK_PACIENT'][$newId] = $data;
-            // Creează automat și pragurile default
             $GLOBALS['MOCK_PRAGURI_PACIENT'][$newId] = [
                 'id_pacient' => $newId,
                 'max_puls' => 93.0,
@@ -127,84 +97,47 @@ class PacientRepo {
             ];
             return $newId;
         }
-        
         $stmt = db()->prepare('INSERT INTO Pacient 
-            (id_utilizator, id_medic, nume, prenume, cnp, varsta, strada, oras, judet,
-             telefon, email, profesie, loc_de_munca, istoric_medical, alergii)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            (id_medic, nume, prenume, varsta, CNP, strada, oras, judet, telefon, profesie, loc_de_munca, istoric_medical, alergii, id_utilizator)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([
-            $data['id_utilizator'] ?? null,
-            $data['id_medic'] ?? null,
-            $data['nume'], $data['prenume'], $data['cnp'],
-            $data['varsta'] ?? null,
-            $data['strada'] ?? null, $data['oras'] ?? null, $data['judet'] ?? null,
-            $data['telefon'] ?? null, $data['email'] ?? null,
-            $data['profesie'] ?? null, $data['loc_de_munca'] ?? null,
-            $data['istoric_medical'] ?? null, $data['alergii'] ?? null,
+            $data['id_medic'], $data['nume'], $data['prenume'], $data['varsta'],
+            $data['cnp'] ?? $data['CNP'], $data['strada'], $data['oras'], $data['judet'],
+            $data['telefon'], $data['profesie'], $data['loc_de_munca'],
+            $data['istoric_medical'], $data['alergii'], $data['id_utilizator'] ?? null,
         ]);
-        return db()->lastInsertId();
+        return (int)db()->lastInsertId();
     }
     
-    /**
-     * Actualizează un pacient
-     */
     public static function update($id, $data) {
         if (isMockMode()) {
             if (!isset($GLOBALS['MOCK_PACIENT'][$id])) return false;
             $GLOBALS['MOCK_PACIENT'][$id] = array_merge($GLOBALS['MOCK_PACIENT'][$id], $data);
-            $GLOBALS['MOCK_PACIENT'][$id]['id'] = $id;
             return true;
         }
-        
-        $fields = [];
-        $params = [];
-        foreach ($data as $col => $val) {
-            if ($col === 'id') continue;
-            $fields[] = "{$col} = ?";
-            $params[] = $val;
-        }
-        $params[] = $id;
-        
-        $sql = 'UPDATE Pacient SET ' . implode(', ', $fields) . ' WHERE id = ?';
-        return db()->prepare($sql)->execute($params);
+        $stmt = db()->prepare('UPDATE Pacient SET 
+            nume=?, prenume=?, varsta=?, CNP=?, strada=?, oras=?, judet=?, telefon=?,
+            profesie=?, loc_de_munca=?, istoric_medical=?, alergii=?
+            WHERE id=?');
+        return $stmt->execute([
+            $data['nume'], $data['prenume'], $data['varsta'],
+            $data['cnp'] ?? $data['CNP'] ?? '', $data['strada'], $data['oras'], $data['judet'],
+            $data['telefon'], $data['profesie'], $data['loc_de_munca'],
+            $data['istoric_medical'], $data['alergii'], $id,
+        ]);
     }
     
-    /**
-     * Șterge un pacient
-     */
     public static function delete($id) {
         if (isMockMode()) {
             unset($GLOBALS['MOCK_PACIENT'][$id]);
-            unset($GLOBALS['MOCK_PRAGURI_PACIENT'][$id]);
             return true;
         }
-        
         $stmt = db()->prepare('DELETE FROM Pacient WHERE id = ?');
         return $stmt->execute([$id]);
     }
     
-    /**
-     * Returnează nume complet
-     */
     public static function fullName($pacient) {
         if (!$pacient) return '-';
         return trim(($pacient['nume'] ?? '') . ' ' . ($pacient['prenume'] ?? ''));
-    }
-    
-    /**
-     * Număr total pacienți (eventual filtrat după medic)
-     */
-    public static function count($idMedic = null) {
-        if (isMockMode()) {
-            if ($idMedic) return count(self::findByMedic($idMedic));
-            return count($GLOBALS['MOCK_PACIENT']);
-        }
-        
-        if ($idMedic) {
-            $stmt = db()->prepare('SELECT COUNT(*) FROM Pacient WHERE id_medic = ?');
-            $stmt->execute([$idMedic]);
-            return (int)$stmt->fetchColumn();
-        }
-        return (int)db()->query('SELECT COUNT(*) FROM Pacient')->fetchColumn();
     }
 }

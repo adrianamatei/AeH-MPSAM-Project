@@ -98,7 +98,7 @@ new Chart(document.getElementById('chartVarsta'), {
         labels: <?= json_encode(array_keys($grupeVarsta)) ?>,
         datasets: [{
             data: <?= json_encode(array_values($grupeVarsta)) ?>,
-            backgroundColor: ['#42a5f5', '#1976d2', '#1565c0', '#0d47a1']
+            backgroundColor: ['#4CAF50', '#0D7C5F', '#0A6B51', '#085842']
         }]
     },
     options: { responsive: true }
@@ -123,7 +123,7 @@ new Chart(document.getElementById('chartLuni'), {
         datasets: [{
             label: 'Consultații',
             data: <?= json_encode(array_values($consultatiiPerLuna)) ?>,
-            backgroundColor: '#1976d2'
+            backgroundColor: '#0D7C5F'
         }]
     },
     options: { responsive: true, plugins: { legend: { display: false } } }

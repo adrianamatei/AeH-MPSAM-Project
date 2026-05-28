@@ -37,8 +37,8 @@ $praguri = PraguriRepo::findByPacient($idPacient);
     <style>
         @page { margin: 1.5cm; }
         body { font-family: Arial, sans-serif; font-size: 11pt; color: #000; }
-        h1 { color: #1976d2; border-bottom: 2px solid #1976d2; padding-bottom: 8px; }
-        h2 { color: #1565c0; margin-top: 20px; }
+        h1 { color: #0D7C5F; border-bottom: 2px solid #0D7C5F; padding-bottom: 8px; }
+        h2 { color: #0A6B51; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; margin: 10px 0; }
         th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
         th { background: #f5f5f5; }
@@ -48,7 +48,7 @@ $praguri = PraguriRepo::findByPacient($idPacient);
 </head>
 <body>
 <div class="no-print">
-    <button onclick="window.print()" style="padding:10px 20px; background:#1976d2; color:white; border:none;">
+    <button onclick="window.print()" style="padding:10px 20px; background:#0D7C5F; color:white; border:none;">
         🖨 Tipărește / Salvează PDF
     </button>
 </div>

@@ -73,10 +73,7 @@ renderHeader('Autentificare', '');
             </button>
         </div>
     </form>
-    
-    <div class="mt-4 text-small text-muted text-center">
-        <strong>Demo:</strong> popescu@vitalcares.ro / parola123
-    </div>
+
 </div>
 
 <?php renderFooter(); ?>

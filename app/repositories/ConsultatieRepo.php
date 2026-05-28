@@ -1,9 +1,8 @@
 <?php
 /**
- * Repository pentru tabela Consultatii
- * 
- * Câmpuri: id, id_pacient, id_medic, data_consultatie, motiv_prezentare,
- *          simptome, diagnostic, retete, id_recomandari, trimiteri
+ * Repository: Consultatii
+ * Azure: id, id_pacient, id_medic, data_consultatie(datetime), motiv_prezentare,
+ *        simptome(text), diagnostic, id_recomandare, trimiteri(text), retete(text)
  */
 class ConsultatieRepo {
     
@@ -16,21 +15,10 @@ class ConsultatieRepo {
         return $stmt->fetch() ?: null;
     }
     
-    public static function all() {
-        if (isMockMode()) {
-            $arr = array_values($GLOBALS['MOCK_CONSULTATII']);
-            usort($arr, fn($a, $b) => strcmp($b['data_consultatie'], $a['data_consultatie']));
-            return $arr;
-        }
-        return db()->query('SELECT * FROM Consultatii ORDER BY data_consultatie DESC')->fetchAll();
-    }
-    
     public static function findByPacient($idPacient) {
         if (isMockMode()) {
-            $arr = array_values(array_filter($GLOBALS['MOCK_CONSULTATII'], 
+            return array_values(array_filter($GLOBALS['MOCK_CONSULTATII'],
                 fn($c) => $c['id_pacient'] == $idPacient));
-            usort($arr, fn($a, $b) => strcmp($b['data_consultatie'], $a['data_consultatie']));
-            return $arr;
         }
         $stmt = db()->prepare('SELECT * FROM Consultatii WHERE id_pacient = ? ORDER BY data_consultatie DESC');
         $stmt->execute([$idPacient]);
@@ -39,10 +27,8 @@ class ConsultatieRepo {
     
     public static function findByMedic($idMedic) {
         if (isMockMode()) {
-            $arr = array_values(array_filter($GLOBALS['MOCK_CONSULTATII'], 
+            return array_values(array_filter($GLOBALS['MOCK_CONSULTATII'],
                 fn($c) => $c['id_medic'] == $idMedic));
-            usort($arr, fn($a, $b) => strcmp($b['data_consultatie'], $a['data_consultatie']));
-            return $arr;
         }
         $stmt = db()->prepare('SELECT * FROM Consultatii WHERE id_medic = ? ORDER BY data_consultatie DESC');
         $stmt->execute([$idMedic]);
@@ -50,8 +36,34 @@ class ConsultatieRepo {
     }
     
     public static function recente($limit = 5, $idMedic = null) {
-        $all = $idMedic ? self::findByMedic($idMedic) : self::all();
-        return array_slice($all, 0, $limit);
+        if (isMockMode()) {
+            $data = $idMedic 
+                ? array_filter($GLOBALS['MOCK_CONSULTATII'], fn($c) => $c['id_medic'] == $idMedic)
+                : $GLOBALS['MOCK_CONSULTATII'];
+            usort($data, fn($a, $b) => strcmp($b['data_consultatie'], $a['data_consultatie']));
+            return array_slice($data, 0, $limit);
+        }
+        $limit = (int)$limit;
+        if ($idMedic) {
+            $stmt = db()->prepare("SELECT TOP {$limit} * FROM Consultatii WHERE id_medic = ? ORDER BY data_consultatie DESC");
+            $stmt->execute([$idMedic]);
+        } else {
+            $stmt = db()->query("SELECT TOP {$limit} * FROM Consultatii ORDER BY data_consultatie DESC");
+        }
+        return $stmt->fetchAll();
+    }
+    
+    public static function count($idMedic = null) {
+        if (isMockMode()) {
+            if (!$idMedic) return count($GLOBALS['MOCK_CONSULTATII']);
+            return count(array_filter($GLOBALS['MOCK_CONSULTATII'], fn($c) => $c['id_medic'] == $idMedic));
+        }
+        if ($idMedic) {
+            $stmt = db()->prepare('SELECT COUNT(*) FROM Consultatii WHERE id_medic = ?');
+            $stmt->execute([$idMedic]);
+            return (int)$stmt->fetchColumn();
+        }
+        return (int)db()->query('SELECT COUNT(*) FROM Consultatii')->fetchColumn();
     }
     
     public static function insert($data) {
@@ -62,28 +74,14 @@ class ConsultatieRepo {
             return $newId;
         }
         $stmt = db()->prepare('INSERT INTO Consultatii 
-            (id_pacient, id_medic, data_consultatie, motiv_prezentare, simptome,
-             diagnostic, retete, id_recomandari, trimiteri)
+            (id_pacient, id_medic, data_consultatie, motiv_prezentare, simptome, diagnostic, id_recomandare, trimiteri, retete)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([
             $data['id_pacient'], $data['id_medic'], $data['data_consultatie'],
-            $data['motiv_prezentare'] ?? '', $data['simptome'] ?? '',
-            $data['diagnostic'] ?? '', $data['retete'] ?? '',
-            $data['id_recomandari'] ?? null, $data['trimiteri'] ?? '',
+            $data['motiv_prezentare'], $data['simptome'], $data['diagnostic'],
+            $data['id_recomandare'] ?? $data['id_recomandari'] ?? null,
+            $data['trimiteri'], $data['retete'],
         ]);
-        return db()->lastInsertId();
-    }
-    
-    public static function count($idMedic = null) {
-        if (isMockMode()) {
-            if ($idMedic) return count(self::findByMedic($idMedic));
-            return count($GLOBALS['MOCK_CONSULTATII']);
-        }
-        if ($idMedic) {
-            $stmt = db()->prepare('SELECT COUNT(*) FROM Consultatii WHERE id_medic = ?');
-            $stmt->execute([$idMedic]);
-            return (int)$stmt->fetchColumn();
-        }
-        return (int)db()->query('SELECT COUNT(*) FROM Consultatii')->fetchColumn();
+        return (int)db()->lastInsertId();
     }
 }

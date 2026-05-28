@@ -56,17 +56,17 @@ logCurrentUserAction('VIEW', 'Statistici', null, 'Generare raport statistici PDF
     <style>
         @page { margin: 1.5cm; }
         body { font-family: Arial, sans-serif; font-size: 11pt; color: #000; line-height: 1.4; }
-        h1 { color: #1976d2; border-bottom: 2px solid #1976d2; padding-bottom: 8px; font-size: 18pt; }
-        h2 { color: #1565c0; font-size: 13pt; margin-top: 20px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+        h1 { color: #0D7C5F; border-bottom: 2px solid #0D7C5F; padding-bottom: 8px; font-size: 18pt; }
+        h2 { color: #0A6B51; font-size: 13pt; margin-top: 20px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
         .meta { color: #666; font-size: 9pt; }
         table { width: 100%; border-collapse: collapse; margin: 10px 0; }
         th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
         th { background: #f5f5f5; }
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 15px 0; }
-        .stat-box { border: 2px solid #1976d2; padding: 12px; text-align: center; border-radius: 4px; }
-        .stat-num { font-size: 24pt; font-weight: bold; color: #1976d2; }
+        .stat-box { border: 2px solid #0D7C5F; padding: 12px; text-align: center; border-radius: 4px; }
+        .stat-num { font-size: 24pt; font-weight: bold; color: #0D7C5F; }
         .stat-lbl { font-size: 9pt; color: #666; text-transform: uppercase; }
-        .bar { height: 18px; background: #1976d2; display: inline-block; vertical-align: middle; }
+        .bar { height: 18px; background: #0D7C5F; display: inline-block; vertical-align: middle; }
         .no-print { margin: 20px; }
         @media print { .no-print { display: none; } }
     </style>
@@ -74,7 +74,7 @@ logCurrentUserAction('VIEW', 'Statistici', null, 'Generare raport statistici PDF
 <body>
 
 <div class="no-print">
-    <button onclick="window.print()" style="padding:10px 20px; background:#1976d2; color:white; border:none; cursor:pointer;">
+    <button onclick="window.print()" style="padding:10px 20px; background:#0D7C5F; color:white; border:none; cursor:pointer;">
         🖨 Tipărește / Salvează ca PDF
     </button>
     <a href="<?= url('rapoarte.php') ?>" style="margin-left:10px;">← Înapoi</a>

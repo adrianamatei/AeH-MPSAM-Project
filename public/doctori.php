@@ -29,7 +29,6 @@ renderFlash();
                         <th>Medic</th>
                         <th>Specializare</th>
                         <th>Telefon</th>
-                        <th>Email</th>
                         <th>Pacienți</th>
                     </tr>
                 </thead>
@@ -48,7 +47,6 @@ renderFlash();
                             </td>
                             <td><span class="badge badge-primary"><?= e($m['specializare']) ?></span></td>
                             <td><?= e($m['telefon']) ?></td>
-                            <td><?= e($m['email']) ?></td>
                             <td><span class="badge badge-secondary"><?= $nrPacienti ?></span></td>
                         </tr>
                     <?php endforeach; ?>
