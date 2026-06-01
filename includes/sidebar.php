@@ -45,6 +45,10 @@ $_role = $_user['rol'] ?? '';
            class="menu-item <?= activeIf($_active, 'recomandari') ?>">
             <span class="icon">💊</span> Recomandări
         </a>
+        <a href="<?= url('activitati.php') ?>" 
+           class="menu-item <?= activeIf($_active, 'activitati') ?>">
+            <span class="icon">✅</span> Activități
+        </a>
     </div>
     
     <div class="menu-section">
