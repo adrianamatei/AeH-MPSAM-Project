@@ -52,11 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save'
         $errors['cnp'] = 'CNP deja folosit pentru alt pacient';
     }
     
-    $email = trim($_POST['email'] ?? '');
-    if ($email && !isValidEmail($email)) {
-        $errors['email'] = 'Adresă email invalidă';
-    }
-    
     if (empty($errors)) {
         $data = [
             'nume' => trim($_POST['nume']),
@@ -67,7 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save'
             'oras' => trim($_POST['oras'] ?? ''),
             'judet' => trim($_POST['judet'] ?? ''),
             'telefon' => trim($_POST['telefon'] ?? ''),
-            'email' => $email,
             'profesie' => trim($_POST['profesie'] ?? ''),
             'loc_de_munca' => trim($_POST['loc_de_munca'] ?? ''),
             'istoric_medical' => trim($_POST['istoric_medical'] ?? ''),
@@ -161,11 +155,6 @@ renderFlash();
                 <div class="form-group">
                     <label class="form-label">Telefon</label>
                     <input type="tel" name="telefon" class="form-control" value="<?= e($d['telefon'] ?? '') ?>">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" name="email" class="form-control" value="<?= e($d['email'] ?? '') ?>">
-                    <?php if (isset($errors['email'])): ?><div class="form-error"><?= e($errors['email']) ?></div><?php endif; ?>
                 </div>
             </div>
             <div class="form-row">

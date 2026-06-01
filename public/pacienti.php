@@ -85,7 +85,6 @@ renderFlash();
                                                 <?= e(PacientRepo::fullName($p)) ?>
                                             </a>
                                         </div>
-                                        <div class="text-small text-muted"><?= e($p['email']) ?></div>
                                     </div>
                                 </div>
                             </td>

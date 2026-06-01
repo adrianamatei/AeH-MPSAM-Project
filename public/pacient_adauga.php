@@ -20,43 +20,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($cnp && !isValidCNP($cnp)) {
         $errors['cnp'] = 'CNP invalid (13 cifre)';
     }
-    if ($cnp && PacientRepo::findByCnp($cnp)) {
-        $errors['cnp'] = 'CNP deja existent în sistem';
-    }
     
-    $email = trim($_POST['email'] ?? '');
-    if ($email && !isValidEmail($email)) {
-        $errors['email'] = 'Adresă email invalidă';
+    // Verifică dacă CNP-ul există deja
+    $existingPacient = $cnp ? PacientRepo::findByCnp($cnp) : null;
+    if ($existingPacient && $existingPacient['id_medic'] == $idMedic) {
+        $errors['cnp'] = 'Acest pacient este deja în lista ta.';
+    } elseif ($existingPacient && !empty($existingPacient['id_medic'])) {
+        $errors['cnp'] = 'CNP deja asociat altui medic.';
     }
     
     if (empty($errors)) {
-        $data = [
-            'id_medic' => $idMedic,
-            'id_utilizator' => null,  // Va fi creat ulterior dacă pacientul vrea cont
-            'nume' => trim($_POST['nume']),
-            'prenume' => trim($_POST['prenume']),
-            'cnp' => $cnp,
-            'varsta' => (int)$_POST['varsta'],
-            'strada' => trim($_POST['strada'] ?? ''),
-            'oras' => trim($_POST['oras'] ?? ''),
-            'judet' => trim($_POST['judet'] ?? ''),
-            'telefon' => trim($_POST['telefon'] ?? ''),
-            'email' => $email,
-            'profesie' => trim($_POST['profesie'] ?? ''),
-            'loc_de_munca' => trim($_POST['loc_de_munca'] ?? ''),
-            'istoric_medical' => trim($_POST['istoric_medical'] ?? ''),
-            'alergii' => trim($_POST['alergii'] ?? ''),
-        ];
-        
-        $newId = PacientRepo::insert($data);
-        
-        if ($newId) {
-            logCurrentUserAction('CREATE', 'Pacient', $newId, 
-                'Adăugare pacient: ' . $data['nume'] . ' ' . $data['prenume']);
-            flash('success', 'Pacient adăugat cu succes.');
-            redirect(url('pacient_detalii.php?id=' . $newId));
+        if ($existingPacient && empty($existingPacient['id_medic'])) {
+            // Pacientul există (s-a înregistrat singur) — asociem cu medicul curent
+            $data = [
+                'id_medic' => $idMedic,
+                'nume' => trim($_POST['nume']),
+                'prenume' => trim($_POST['prenume']),
+                'varsta' => (int)$_POST['varsta'],
+                'strada' => trim($_POST['strada'] ?? ''),
+                'oras' => trim($_POST['oras'] ?? ''),
+                'judet' => trim($_POST['judet'] ?? ''),
+                'telefon' => trim($_POST['telefon'] ?? ''),
+                'profesie' => trim($_POST['profesie'] ?? ''),
+                'loc_de_munca' => trim($_POST['loc_de_munca'] ?? ''),
+                'istoric_medical' => trim($_POST['istoric_medical'] ?? ''),
+                'alergii' => trim($_POST['alergii'] ?? ''),
+            ];
+            
+            if (isMockMode()) {
+                $GLOBALS['MOCK_PACIENT'][$existingPacient['id']] = array_merge($existingPacient, $data);
+            } else {
+                $stmt = db()->prepare('UPDATE Pacient SET id_medic=?, nume=?, prenume=?, varsta=?, strada=?, oras=?, judet=?, telefon=?, profesie=?, loc_de_munca=?, istoric_medical=?, alergii=? WHERE id=?');
+                $stmt->execute([$idMedic, $data['nume'], $data['prenume'], $data['varsta'], $data['strada'], $data['oras'], $data['judet'], $data['telefon'], $data['profesie'], $data['loc_de_munca'], $data['istoric_medical'], $data['alergii'], $existingPacient['id']]);
+            }
+            
+            logCurrentUserAction('UPDATE', 'Pacient', $existingPacient['id'], 
+                'Asociere pacient existent: ' . $data['nume'] . ' ' . $data['prenume']);
+            flash('success', 'Pacientul a fost asociat contului tău cu succes.');
+            redirect(url('pacient_detalii.php?id=' . $existingPacient['id']));
         } else {
-            flash('error', 'Eroare la adăugarea pacientului.');
+            // Pacient nou — creare normală
+            $data = [
+                'id_medic' => $idMedic,
+                'id_utilizator' => null,
+                'nume' => trim($_POST['nume']),
+                'prenume' => trim($_POST['prenume']),
+                'cnp' => $cnp,
+                'varsta' => (int)$_POST['varsta'],
+                'strada' => trim($_POST['strada'] ?? ''),
+                'oras' => trim($_POST['oras'] ?? ''),
+                'judet' => trim($_POST['judet'] ?? ''),
+                'telefon' => trim($_POST['telefon'] ?? ''),
+                'profesie' => trim($_POST['profesie'] ?? ''),
+                'loc_de_munca' => trim($_POST['loc_de_munca'] ?? ''),
+                'istoric_medical' => trim($_POST['istoric_medical'] ?? ''),
+                'alergii' => trim($_POST['alergii'] ?? ''),
+            ];
+            
+            $newId = PacientRepo::insert($data);
+            
+            if ($newId) {
+                logCurrentUserAction('CREATE', 'Pacient', $newId, 
+                    'Adăugare pacient: ' . $data['nume'] . ' ' . $data['prenume']);
+                flash('success', 'Pacient adăugat cu succes.');
+                redirect(url('pacient_detalii.php?id=' . $newId));
+            } else {
+                flash('error', 'Eroare la adăugarea pacientului.');
+            }
         }
     }
 }
@@ -157,15 +187,6 @@ renderFlash();
                     <input type="tel" name="telefon" class="form-control" 
                            value="<?= e(old('telefon')) ?>"
                            placeholder="0712345678">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" name="email" class="form-control" 
-                           value="<?= e(old('email')) ?>"
-                           placeholder="exemplu@email.ro">
-                    <?php if (isset($errors['email'])): ?>
-                        <div class="form-error"><?= e($errors['email']) ?></div>
-                    <?php endif; ?>
                 </div>
             </div>
             

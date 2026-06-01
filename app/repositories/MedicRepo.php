@@ -10,11 +10,10 @@ class MedicRepo {
         if (isMockMode()) {
             return $GLOBALS['MOCK_MEDICI'][$id] ?? null;
         }
-        $stmt = db()->prepare('SELECT id_medic, nume, prenume, specializare, telefon FROM Medic WHERE id_medic = ?');
+        $stmt = db()->prepare('SELECT id_medic, nume, prenume, specializare, telefon, id_utilizator FROM Medic WHERE id_medic = ?');
         $stmt->execute([$id]);
         $row = $stmt->fetch();
         if ($row) {
-            // Mapăm id_medic → id pentru compatibilitate internă
             $row['id'] = $row['id_medic'];
         }
         return $row ?: null;
@@ -27,9 +26,7 @@ class MedicRepo {
             }
             return null;
         }
-        // Azure nu are id_utilizator pe Medic — căutăm prin Pacient sau altă logică
-        // Temporar: returnăm primul medic (de adaptat când se adaugă legătura)
-        $stmt = db()->prepare('SELECT id_medic, nume, prenume, specializare, telefon FROM Medic WHERE id_medic = ?');
+        $stmt = db()->prepare('SELECT id_medic, nume, prenume, specializare, telefon, id_utilizator FROM Medic WHERE id_utilizator = ?');
         $stmt->execute([$idUtilizator]);
         $row = $stmt->fetch();
         if ($row) $row['id'] = $row['id_medic'];
@@ -40,7 +37,7 @@ class MedicRepo {
         if (isMockMode()) {
             return array_values($GLOBALS['MOCK_MEDICI']);
         }
-        $rows = db()->query('SELECT id_medic, nume, prenume, specializare, telefon FROM Medic ORDER BY nume, prenume')->fetchAll();
+        $rows = db()->query('SELECT id_medic, nume, prenume, specializare, telefon, id_utilizator FROM Medic ORDER BY nume, prenume')->fetchAll();
         foreach ($rows as &$r) { $r['id'] = $r['id_medic']; }
         return $rows;
     }

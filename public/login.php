@@ -73,7 +73,12 @@ renderHeader('Autentificare', '');
             </button>
         </div>
     </form>
-
+    
+    <div class="mt-4 text-small text-muted text-center">
+        <strong>Demo:</strong> popescu@vitalcares.ro / parola123
+        <br><br>
+        Nu ai cont? <a href="<?= url('register.php') ?>">Înregistrează-te</a>
+    </div>
 </div>
 
 <?php renderFooter(); ?>

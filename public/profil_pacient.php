@@ -33,7 +33,6 @@ renderFlash();
             <dt>CNP</dt><dd><?= e($pacient['cnp']) ?></dd>
             <dt>Vârstă</dt><dd><?= e($pacient['varsta']) ?> ani</dd>
             <dt>Telefon</dt><dd><?= e($pacient['telefon']) ?></dd>
-            <dt>Email</dt><dd><?= e($pacient['email']) ?></dd>
             <dt>Adresă</dt>
             <dd>
                 <?= e($pacient['strada']) ?>, 

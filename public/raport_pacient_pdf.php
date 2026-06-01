@@ -61,7 +61,6 @@ logCurrentUserAction('VIEW', 'Pacient', $idPacient, 'Generare raport PDF');
     <dt>Vârstă:</dt><dd><?= e($pacient['varsta']) ?> ani</dd>
     <dt>Adresă:</dt><dd><?= e($pacient['strada']) ?>, <?= e($pacient['oras']) ?>, <?= e($pacient['judet']) ?></dd>
     <dt>Telefon:</dt><dd><?= e($pacient['telefon']) ?></dd>
-    <dt>Email:</dt><dd><?= e($pacient['email']) ?></dd>
     <dt>Profesie:</dt><dd><?= e($pacient['profesie']) ?: '-' ?></dd>
     <dt>Loc de muncă:</dt><dd><?= e($pacient['loc_de_munca']) ?: '-' ?></dd>
 </dl>

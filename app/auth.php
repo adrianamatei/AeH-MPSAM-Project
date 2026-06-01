@@ -28,21 +28,19 @@ function login($email, $password) {
     $_SESSION['user'] = [
         'id_utilizator' => $user['id'],
         'email' => $user['email'],
-        'rol' => $user['rol'],
+        'rol' => strtolower(trim($user['rol'])),  // Normalizare: "Medic" → "medic", "Pacient" → "pacient"
     ];
     $_SESSION['last_activity'] = time();
     
     // Atașează profilul (medic sau pacient) după rol
-    if ($user['rol'] === 'medic') {
-        // Azure: Medic nu are id_utilizator — căutăm medic cu id_medic = user.id
-        // SAU prin altă logică (depinde de cum a configurat Roxana)
-        // Temporar: id_medic = id utilizator (de adaptat)
-        $medic = MedicRepo::findById($user['id']);
+    if ($_SESSION['user']['rol'] === 'medic') {
+        // Căutăm medicul după id_utilizator
+        $medic = MedicRepo::findByUtilizator($user['id']);
         if ($medic) {
             $_SESSION['user']['id_profil'] = $medic['id'] ?? $medic['id_medic'];
             $_SESSION['user']['nume_complet'] = trim(($medic['nume'] ?? '') . ' ' . ($medic['prenume'] ?? ''));
         }
-    } elseif ($user['rol'] === 'pacient') {
+    } elseif ($_SESSION['user']['rol'] === 'pacient') {
         // Pacient are id_utilizator ca FK
         $pacient = PacientRepo::findByUtilizator($user['id']);
         if ($pacient) {
@@ -58,9 +56,11 @@ function login($email, $password) {
 }
 
 function logout() {
-    if (isLoggedIn()) {
-        $userId = $_SESSION['user']['id_utilizator'];
-        logAction($userId, 'LOGOUT', 'Utilizatori', $userId, 'Logout');
+    if (isset($_SESSION['user'])) {
+        $userId = $_SESSION['user']['id_utilizator'] ?? null;
+        if ($userId) {
+            logAction($userId, 'LOGOUT', 'Utilizatori', $userId, 'Logout');
+        }
     }
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {
