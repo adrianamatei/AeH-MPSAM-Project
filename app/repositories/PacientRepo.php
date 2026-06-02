@@ -98,11 +98,13 @@ class PacientRepo {
             return $newId;
         }
         $stmt = db()->prepare('INSERT INTO Pacient 
-            (id_medic, nume, prenume, varsta, CNP, strada, oras, judet, telefon, profesie, loc_de_munca, istoric_medical, alergii, id_utilizator)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            (id_medic, nume, prenume, varsta, sex, data_nasterii, CNP, email, strada, oras, judet, telefon, profesie, loc_de_munca, istoric_medical, alergii, id_utilizator)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([
             $data['id_medic'], $data['nume'], $data['prenume'], $data['varsta'],
-            $data['cnp'] ?? $data['CNP'], $data['strada'], $data['oras'], $data['judet'],
+            $data['sex'] ?? null, $data['data_nasterii'] ?? null,
+            $data['cnp'] ?? $data['CNP'], $data['email'] ?? null,
+            $data['strada'], $data['oras'], $data['judet'],
             $data['telefon'], $data['profesie'], $data['loc_de_munca'],
             $data['istoric_medical'], $data['alergii'], $data['id_utilizator'] ?? null,
         ]);
@@ -116,11 +118,12 @@ class PacientRepo {
             return true;
         }
         $stmt = db()->prepare('UPDATE Pacient SET 
-            nume=?, prenume=?, varsta=?, CNP=?, strada=?, oras=?, judet=?, telefon=?,
+            nume=?, prenume=?, varsta=?, sex=?, data_nasterii=?, CNP=?, strada=?, oras=?, judet=?, telefon=?,
             profesie=?, loc_de_munca=?, istoric_medical=?, alergii=?
             WHERE id=?');
         return $stmt->execute([
             $data['nume'], $data['prenume'], $data['varsta'],
+            $data['sex'] ?? null, $data['data_nasterii'] ?? null,
             $data['cnp'] ?? $data['CNP'] ?? '', $data['strada'], $data['oras'], $data['judet'],
             $data['telefon'], $data['profesie'], $data['loc_de_munca'],
             $data['istoric_medical'], $data['alergii'], $id,

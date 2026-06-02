@@ -30,8 +30,10 @@ renderFlash();
     <div class="card-body">
         <dl class="dl-grid">
             <dt>Nume complet</dt><dd><?= e(PacientRepo::fullName($pacient)) ?></dd>
-            <dt>CNP</dt><dd><?= e($pacient['cnp']) ?></dd>
+            <dt>CNP</dt><dd><?= e($pacient['cnp'] ?? $pacient['CNP'] ?? '') ?></dd>
             <dt>Vârstă</dt><dd><?= e($pacient['varsta']) ?> ani</dd>
+            <dt>Sex</dt><dd><?= e($pacient['sex'] ?? '-') ?></dd>
+            <dt>Data nașterii</dt><dd><?= !empty($pacient['data_nasterii']) ? e(formatDate($pacient['data_nasterii'])) : '-' ?></dd>
             <dt>Telefon</dt><dd><?= e($pacient['telefon']) ?></dd>
             <dt>Adresă</dt>
             <dd>

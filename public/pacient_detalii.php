@@ -95,7 +95,15 @@ renderFlash();
                     <div class="vital-icon"><?= $iconuri[$tip] ?></div>
                     <div class="vital-label"><?= $labeluri[$tip] ?></div>
                     <div class="vital-number">
-                        <span class="vital-value normal"><?= e($m['valoare']) ?></span>
+                        <span class="vital-value normal">
+                            <?=
+                            e(
+                                $tip === 'temperatura'
+                                    ? number_format((float)$m['valoare'], 1, '.', '')
+                                    : $m['valoare']
+                            )
+                            ?>
+                        </span>
                         <span class="vital-unit"><?= e($unitati[$tip]) ?></span>
                     </div>
                     <div class="vital-time"><?= e(formatDateTime($m['moment_inregistrare'])) ?></div>
@@ -115,8 +123,10 @@ renderFlash();
             <dl class="dl-grid">
                 <dt>Nume</dt><dd><?= e($pacient['nume']) ?></dd>
                 <dt>Prenume</dt><dd><?= e($pacient['prenume']) ?></dd>
-                <dt>CNP</dt><dd><?= e($pacient['cnp']) ?></dd>
+                <dt>CNP</dt><dd><?= e($pacient['cnp'] ?? $pacient['CNP'] ?? '') ?></dd>
                 <dt>Vârstă</dt><dd><?= e($pacient['varsta']) ?> ani</dd>
+                <dt>Sex</dt><dd><?= e($pacient['sex'] ?? '-') ?></dd>
+                <dt>Data nașterii</dt><dd><?= !empty($pacient['data_nasterii']) ? e(formatDate($pacient['data_nasterii'])) : '-' ?></dd>
                 <dt>Adresă</dt><dd><?= e($pacient['strada']) ?>, <?= e($pacient['oras']) ?>, <?= e($pacient['judet']) ?></dd>
                 <dt>Telefon</dt><dd><?= e($pacient['telefon']) ?></dd>
                 <dt>Profesie</dt><dd><?= e($pacient['profesie']) ?: '-' ?></dd>

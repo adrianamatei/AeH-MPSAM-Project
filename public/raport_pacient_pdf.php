@@ -57,8 +57,10 @@ logCurrentUserAction('VIEW', 'Pacient', $idPacient, 'Generare raport PDF');
 <h2>1. Date demografice</h2>
 <dl>
     <dt>Nume complet:</dt><dd><?= e(PacientRepo::fullName($pacient)) ?></dd>
-    <dt>CNP:</dt><dd><?= e($pacient['cnp']) ?></dd>
+    <dt>CNP:</dt><dd><?= e($pacient['cnp'] ?? $pacient['CNP'] ?? '') ?></dd>
     <dt>Vârstă:</dt><dd><?= e($pacient['varsta']) ?> ani</dd>
+    <dt>Sex:</dt><dd><?= e($pacient['sex'] ?? '-') ?></dd>
+    <dt>Data nașterii:</dt><dd><?= !empty($pacient['data_nasterii']) ? e(formatDate($pacient['data_nasterii'])) : '-' ?></dd>
     <dt>Adresă:</dt><dd><?= e($pacient['strada']) ?>, <?= e($pacient['oras']) ?>, <?= e($pacient['judet']) ?></dd>
     <dt>Telefon:</dt><dd><?= e($pacient['telefon']) ?></dd>
     <dt>Profesie:</dt><dd><?= e($pacient['profesie']) ?: '-' ?></dd>
