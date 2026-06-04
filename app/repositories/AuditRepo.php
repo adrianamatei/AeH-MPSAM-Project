@@ -9,16 +9,17 @@ class AuditRepo {
     public static function all($limit = 100) {
         if (isMockMode()) {
             $data = $GLOBALS['MOCK_AUDIT'] ?? [];
-            usort($data, fn($a, $b) => strcmp($b['timestamp'], $a['timestamp']));
+            usort($data, fn($a, $b) => strcmp($b['timestamp'] ?? '', $a['timestamp'] ?? ''));
             return array_slice($data, 0, $limit);
         }
-        // Dacă tabela AuditLog nu există în Azure, returnăm array gol
         try {
-            $stmt = db()->prepare('SELECT TOP (?) * FROM AuditLog ORDER BY timestamp DESC');
-            $stmt->execute([$limit]);
+            $limit = (int)$limit;
+            $stmt = db()->query("SELECT TOP {$limit} a.*, u.email, u.rol 
+                FROM AuditLog a 
+                LEFT JOIN Utilizatori u ON a.id_utilizator = u.id 
+                ORDER BY a.created_at DESC");
             return $stmt->fetchAll();
         } catch (\PDOException $e) {
-            // Tabela nu există încă
             return [];
         }
     }
@@ -30,14 +31,13 @@ class AuditRepo {
         }
         try {
             $stmt = db()->prepare('INSERT INTO AuditLog 
-                (id_utilizator, action, entity, entity_id, details, ip_address, timestamp)
-                VALUES (?, ?, ?, ?, ?, ?, ?)');
+                (id_utilizator, actiune, entitate, entitate_id, detalii, ip_address)
+                VALUES (?, ?, ?, ?, ?, ?)');
             return $stmt->execute([
                 $data['id_utilizator'], $data['action'], $data['entity'],
-                $data['entity_id'], $data['details'], $data['ip_address'], $data['timestamp'],
+                $data['entity_id'], $data['details'], $data['ip_address'],
             ]);
         } catch (\PDOException $e) {
-            // Tabela nu există — ignorăm silențios
             return false;
         }
     }

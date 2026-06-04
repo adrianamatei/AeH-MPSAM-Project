@@ -44,6 +44,7 @@ renderFlash();
     <div class="page-actions">
         <a href="<?= url('consultatie_adauga.php?id_pacient=' . $idPacient) ?>" class="btn btn-primary">+ Consultație</a>
         <a href="<?= url('pacient_editare.php?id=' . $idPacient) ?>" class="btn btn-outline">Editează</a>
+        <a href="<?= url('versiuni.php?entitate=Pacient&id=' . $idPacient) ?>" class="btn">📜 Versiuni</a>
         <a href="<?= url('raport_pacient_pdf.php?id=' . $idPacient) ?>" class="btn">📄 Raport PDF</a>
     </div>
     <?php endif; ?>
@@ -95,15 +96,7 @@ renderFlash();
                     <div class="vital-icon"><?= $iconuri[$tip] ?></div>
                     <div class="vital-label"><?= $labeluri[$tip] ?></div>
                     <div class="vital-number">
-                        <span class="vital-value normal">
-                            <?=
-                            e(
-                                $tip === 'temperatura'
-                                    ? number_format((float)$m['valoare'], 1, '.', '')
-                                    : $m['valoare']
-                            )
-                            ?>
-                        </span>
+                        <span class="vital-value normal"><?= e($m['valoare']) ?></span>
                         <span class="vital-unit"><?= e($unitati[$tip]) ?></span>
                     </div>
                     <div class="vital-time"><?= e(formatDateTime($m['moment_inregistrare'])) ?></div>
@@ -176,6 +169,41 @@ renderFlash();
                 <div class="vital-number"><?= e($praguri['max_temp']) ?> <span class="vital-unit">°C</span></div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Medicație structurată (EuroRec GS001550.6, GS001559.2, GS004729.2) -->
+<?php $medicatieActiva = MedicatieRepo::findActive($idPacient); ?>
+<div class="card mt-4">
+    <div class="card-header">
+        <h3>💊 Medicație curentă (<?= count($medicatieActiva) ?>)</h3>
+        <div>
+            <a href="<?= url('medicatie.php?id=' . $idPacient) ?>" class="btn btn-sm btn-outline">Vezi tot</a>
+            <?php if ($isMedic): ?>
+                <a href="<?= url('medicatie_adauga.php?id_pacient=' . $idPacient) ?>" class="btn btn-sm btn-primary">+ Prescrie</a>
+            <?php endif; ?>
+        </div>
+    </div>
+    <div class="card-body" style="padding:0;">
+        <?php if (empty($medicatieActiva)): ?>
+            <div class="empty-state"><p class="text-muted">Nicio medicație activă.</p></div>
+        <?php else: ?>
+            <table class="table">
+                <thead><tr><th>Produs</th><th>Doză</th><th>Posologie</th><th>Din</th></tr></thead>
+                <tbody>
+                    <?php foreach ($medicatieActiva as $med): ?>
+                        <tr>
+                            <td><strong><?= e($med['produs']) ?></strong>
+                                <?php if ($med['forma_prezentare']): ?><br><span class="text-small text-muted"><?= e($med['forma_prezentare']) ?></span><?php endif; ?>
+                            </td>
+                            <td><?= e($med['doza'] ?? '-') ?></td>
+                            <td><?= e($med['posologie'] ?? '-') ?></td>
+                            <td class="text-small"><?= e(formatDate($med['data_inceput'])) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
     </div>
 </div>
 

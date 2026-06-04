@@ -15,11 +15,12 @@ if (!medicCanAccessPacient($alarma['id_pacient'])) {
     redirect(url('alarme.php'));
 }
 
-// Ștergere
+// Arhivare
 if (($_POST['action'] ?? '') === 'delete') {
     requireCsrf();
     AlarmaRepo::delete($idAlarma);
-    logCurrentUserAction('DELETE', 'Alarme', $idAlarma);
+    logCurrentUserAction('ARCHIVE', 'Alarme', $idAlarma, 'Arhivare alarmă');
+    flash('success', 'Alarma a fost arhivată cu succes.');
     flash('success', 'Alarmă ștearsă.');
     redirect(url('alarme.php'));
 }
@@ -117,11 +118,21 @@ renderFlash();
     </div>
 </form>
 
-<form method="POST" action="" style="margin-top: var(--sp-4);">
+<form method="POST" action="" style="margin-top: var(--sp-5);">
     <input type="hidden" name="<?= CSRF_TOKEN_NAME ?>" value="<?= csrfToken() ?>">
     <input type="hidden" name="action" value="delete">
-    <button type="submit" class="btn btn-danger btn-sm" 
-            data-confirm="Sigur ștergi această alarmă?">🗑 Șterge alarma</button>
+    <div class="card" style="border-color: var(--warning);">
+        <div class="card-header" style="background: #fff8e8;">
+            <h3 style="color: var(--warning);">📦 Arhivare alarmă</h3>
+        </div>
+        <div class="card-body">
+            <p>Alarma va fi arhivată și nu va mai apărea în listele active. Poate fi restaurată din pagina de Arhivă.</p>
+            <button type="submit" class="btn btn-danger" 
+                    data-confirm="Ești sigur că vrei să arhivezi această alarmă?">
+                📦 Arhivează alarma
+            </button>
+        </div>
+    </div>
 </form>
 
 <?php renderFooter(); ?>

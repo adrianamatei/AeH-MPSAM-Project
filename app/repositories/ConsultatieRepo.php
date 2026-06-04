@@ -20,7 +20,7 @@ class ConsultatieRepo {
             return array_values(array_filter($GLOBALS['MOCK_CONSULTATII'],
                 fn($c) => $c['id_pacient'] == $idPacient));
         }
-        $stmt = db()->prepare('SELECT * FROM Consultatii WHERE id_pacient = ? ORDER BY data_consultatie DESC');
+        $stmt = db()->prepare('SELECT * FROM Consultatii WHERE id_pacient = ? AND is_deleted = 0 ORDER BY data_consultatie DESC');
         $stmt->execute([$idPacient]);
         return $stmt->fetchAll();
     }
@@ -30,7 +30,7 @@ class ConsultatieRepo {
             return array_values(array_filter($GLOBALS['MOCK_CONSULTATII'],
                 fn($c) => $c['id_medic'] == $idMedic));
         }
-        $stmt = db()->prepare('SELECT * FROM Consultatii WHERE id_medic = ? ORDER BY data_consultatie DESC');
+        $stmt = db()->prepare('SELECT * FROM Consultatii WHERE id_medic = ? AND is_deleted = 0 ORDER BY data_consultatie DESC');
         $stmt->execute([$idMedic]);
         return $stmt->fetchAll();
     }
@@ -45,10 +45,10 @@ class ConsultatieRepo {
         }
         $limit = (int)$limit;
         if ($idMedic) {
-            $stmt = db()->prepare("SELECT TOP {$limit} * FROM Consultatii WHERE id_medic = ? ORDER BY data_consultatie DESC");
+            $stmt = db()->prepare("SELECT TOP {$limit} * FROM Consultatii WHERE id_medic = ? AND is_deleted = 0 ORDER BY data_consultatie DESC");
             $stmt->execute([$idMedic]);
         } else {
-            $stmt = db()->query("SELECT TOP {$limit} * FROM Consultatii ORDER BY data_consultatie DESC");
+            $stmt = db()->query("SELECT TOP {$limit} * FROM Consultatii WHERE is_deleted = 0 ORDER BY data_consultatie DESC");
         }
         return $stmt->fetchAll();
     }
@@ -59,11 +59,11 @@ class ConsultatieRepo {
             return count(array_filter($GLOBALS['MOCK_CONSULTATII'], fn($c) => $c['id_medic'] == $idMedic));
         }
         if ($idMedic) {
-            $stmt = db()->prepare('SELECT COUNT(*) FROM Consultatii WHERE id_medic = ?');
+            $stmt = db()->prepare('SELECT COUNT(*) FROM Consultatii WHERE id_medic = ? AND is_deleted = 0');
             $stmt->execute([$idMedic]);
             return (int)$stmt->fetchColumn();
         }
-        return (int)db()->query('SELECT COUNT(*) FROM Consultatii')->fetchColumn();
+        return (int)db()->query('SELECT COUNT(*) FROM Consultatii WHERE is_deleted = 0')->fetchColumn();
     }
     
     public static function insert($data) {
@@ -83,5 +83,15 @@ class ConsultatieRepo {
             $data['trimiteri'], $data['retete'],
         ]);
         return (int)db()->lastInsertId();
+    }
+    
+    public static function delete($id) {
+        if (isMockMode()) {
+            unset($GLOBALS['MOCK_CONSULTATII'][$id]);
+            return true;
+        }
+        $old = self::findById($id);
+        if ($old) VersionHistoryRepo::saveSnapshot('Consultatii', $id, 'ARCHIVE', $old);
+        return db()->prepare('UPDATE Consultatii SET is_deleted = 1 WHERE id = ?')->execute([$id]);
     }
 }

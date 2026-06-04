@@ -18,8 +18,8 @@ if (!medicCanAccessPacient($recomandare['id_pacient'])) {
 if (($_POST['action'] ?? '') === 'delete') {
     requireCsrf();
     RecomandareRepo::delete($id);
-    logCurrentUserAction('DELETE', 'Recomandari', $id);
-    flash('success', 'Recomandare ștearsă.');
+    logCurrentUserAction('ARCHIVE', 'Recomandari', $id, 'Arhivare recomandare');
+    flash('success', 'Recomandare arhivată cu succes.');
     redirect(url('recomandari.php'));
 }
 
@@ -80,11 +80,21 @@ renderFlash();
     </div>
 </form>
 
-<form method="POST" action="" style="margin-top: var(--sp-4);">
+<form method="POST" action="" style="margin-top: var(--sp-5);">
     <input type="hidden" name="<?= CSRF_TOKEN_NAME ?>" value="<?= csrfToken() ?>">
     <input type="hidden" name="action" value="delete">
-    <button type="submit" class="btn btn-danger btn-sm" 
-            data-confirm="Sigur ștergi recomandarea?">🗑 Șterge</button>
+    <div class="card" style="border-color: var(--warning);">
+        <div class="card-header" style="background: #fff8e8;">
+            <h3 style="color: var(--warning);">📦 Arhivare recomandare</h3>
+        </div>
+        <div class="card-body">
+            <p>Recomandarea va fi arhivată și nu va mai apărea în listele active. Poate fi restaurată din pagina de Arhivă.</p>
+            <button type="submit" class="btn btn-danger" 
+                    data-confirm="Ești sigur că vrei să arhivezi această recomandare?">
+                📦 Arhivează recomandarea
+            </button>
+        </div>
+    </div>
 </form>
 
 <?php renderFooter(); ?>

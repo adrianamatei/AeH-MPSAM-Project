@@ -17,7 +17,7 @@ class ActivitateRepo {
         if (isMockMode()) {
             return array_values(array_filter($GLOBALS['MOCK_ACTIVITATI'], fn($a) => $a['id_pacient'] == $idPacient));
         }
-        $stmt = db()->prepare('SELECT * FROM Activitati WHERE id_pacient = ? ORDER BY data_programata DESC, ora_programata');
+        $stmt = db()->prepare('SELECT * FROM Activitati WHERE id_pacient = ? AND is_deleted = 0 ORDER BY data_programata DESC, ora_programata');
         $stmt->execute([$idPacient]);
         return $stmt->fetchAll();
     }
@@ -28,7 +28,7 @@ class ActivitateRepo {
             return array_values(array_filter($GLOBALS['MOCK_ACTIVITATI'], 
                 fn($a) => $a['id_pacient'] == $idPacient && $a['data_programata'] == $azi));
         }
-        $stmt = db()->prepare('SELECT * FROM Activitati WHERE id_pacient = ? AND data_programata = CAST(GETDATE() AS DATE) ORDER BY ora_programata');
+        $stmt = db()->prepare('SELECT * FROM Activitati WHERE id_pacient = ? AND is_deleted = 0 AND data_programata = CAST(GETDATE() AS DATE) ORDER BY ora_programata');
         $stmt->execute([$idPacient]);
         return $stmt->fetchAll();
     }

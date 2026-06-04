@@ -15,6 +15,19 @@ requireAccessToPacient($consultatie['id_pacient']);
 $pacient = PacientRepo::findById($consultatie['id_pacient']);
 $medic = MedicRepo::findById($consultatie['id_medic']);
 
+// Arhivare consultație
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'archive' && hasRole('medic')) {
+    requireCsrf();
+    if (ConsultatieRepo::delete($idConsultatie)) {
+        logCurrentUserAction('ARCHIVE', 'Consultatii', $idConsultatie, 
+            'Arhivare consultație din ' . ($consultatie['data_consultatie'] ?? ''));
+        flash('success', 'Consultația a fost arhivată cu succes.');
+        redirect(url('consultatii.php'));
+    } else {
+        flash('error', 'Eroare la arhivare.');
+    }
+}
+
 renderHeader('Consultație', 'consultatii');
 renderFlash();
 ?>
@@ -115,5 +128,24 @@ renderFlash();
         <a href="<?= url('consultatie_adauga.php?id_pacient=' . $pacient['id']) ?>" class="btn btn-primary">+ Consultație nouă</a>
     <?php endif; ?>
 </div>
+
+<?php if (hasRole('medic')): ?>
+<form method="POST" action="" style="margin-top: var(--sp-5);">
+    <input type="hidden" name="<?= CSRF_TOKEN_NAME ?>" value="<?= csrfToken() ?>">
+    <input type="hidden" name="action" value="archive">
+    <div class="card" style="border-color: var(--warning);">
+        <div class="card-header" style="background: #fff8e8;">
+            <h3 style="color: var(--warning);">📦 Arhivare consultație</h3>
+        </div>
+        <div class="card-body">
+            <p>Consultația va fi arhivată și nu va mai apărea în listele active. Datele sunt păstrate și pot fi restaurate ulterior.</p>
+            <button type="submit" class="btn btn-danger" 
+                    data-confirm="Ești sigur că vrei să arhivezi această consultație?">
+                📦 Arhivează consultația
+            </button>
+        </div>
+    </div>
+</form>
+<?php endif; ?>
 
 <?php renderFooter(); ?>

@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = [
         'id_pacient' => $idPacient,
         'id_medic' => $idMedic,
-        'data_consultatie' => trim($_POST['data_consultatie'] ?? date('Y-m-d H:i:s')),
+        'data_consultatie' => str_replace('T', ' ', trim($_POST['data_consultatie'] ?? date('Y-m-d H:i:s'))),
         'motiv_prezentare' => trim($_POST['motiv_prezentare'] ?? ''),
         'simptome' => trim($_POST['simptome'] ?? ''),
         'diagnostic' => trim($_POST['diagnostic'] ?? ''),
@@ -50,7 +50,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 renderHeader('Consultație nouă', 'consultatii');
 renderFlash();
 
-$icdCodes = $GLOBALS['MOCK_ICD10'] ?? [];
+// Coduri ICD-10 cardiologie (disponibile mereu, nu doar în mock)
+$icdCodes = [
+    'I10' => 'Hipertensiune esențială',
+    'I11.0' => 'Boală cardiacă hipertensivă cu insuficiență',
+    'I20.0' => 'Angină pectorală instabilă',
+    'I20.9' => 'Angină pectorală stabilă',
+    'I21.9' => 'Infarct miocardic acut',
+    'I25.1' => 'Boală cardiacă aterosclerotică',
+    'I48.0' => 'Fibrilație atrială paroxistică',
+    'I48.9' => 'Fibrilație atrială',
+    'I50.0' => 'Insuficiență cardiacă congestivă',
+    'I50.9' => 'Insuficiență cardiacă, nespecificată',
+    'I42.0' => 'Cardiomiopatie dilatativă',
+    'I44.1' => 'Bloc atrioventricular grad II',
+    'I47.1' => 'Tahicardie supraventriculară',
+    'I47.2' => 'Tahicardie ventriculară',
+    'I49.9' => 'Aritmie cardiacă, nespecificată',
+    'E11.9' => 'Diabet zaharat tip 2, fără complicații',
+    'E11.6' => 'Diabet zaharat tip 2 cu complicații',
+    'E78.5' => 'Hiperlipidemie',
+    'J44.1' => 'BPOC cu exacerbare acută',
+    'J44.9' => 'BPOC, nespecificată',
+    'M81.0' => 'Osteoporoză postmenopauză',
+    'N18.3' => 'Boală renală cronică stadiul 3',
+    'F32.9' => 'Episod depresiv',
+    'F41.1' => 'Anxietate generalizată',
+    'Z95.1' => 'Status post bypass aortocoronarian',
+    'Z95.5' => 'Status post angioplastie cu stent',
+];
 ?>
 
 <div class="page-header">

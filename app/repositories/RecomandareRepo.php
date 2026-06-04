@@ -16,7 +16,7 @@ class RecomandareRepo {
         if (isMockMode()) {
             return array_values(array_filter($GLOBALS['MOCK_RECOMANDARI'], fn($r) => $r['id_pacient'] == $idPacient));
         }
-        $stmt = db()->prepare('SELECT * FROM Recomandari WHERE id_pacient = ?');
+        $stmt = db()->prepare('SELECT * FROM Recomandari WHERE id_pacient = ? AND is_deleted = 0');
         $stmt->execute([$idPacient]);
         return $stmt->fetchAll();
     }
@@ -25,7 +25,7 @@ class RecomandareRepo {
         if (isMockMode()) {
             return array_values(array_filter($GLOBALS['MOCK_RECOMANDARI'], fn($r) => $r['id_medic'] == $idMedic));
         }
-        $stmt = db()->prepare('SELECT * FROM Recomandari WHERE id_medic = ?');
+        $stmt = db()->prepare('SELECT * FROM Recomandari WHERE id_medic = ? AND is_deleted = 0');
         $stmt->execute([$idMedic]);
         return $stmt->fetchAll();
     }
@@ -48,12 +48,17 @@ class RecomandareRepo {
             $GLOBALS['MOCK_RECOMANDARI'][$id] = array_merge($GLOBALS['MOCK_RECOMANDARI'][$id], $data);
             return true;
         }
+        $old = self::findById($id);
+        if ($old) VersionHistoryRepo::saveSnapshot('Recomandari', $id, 'UPDATE', $old, $data);
+        
         $stmt = db()->prepare('UPDATE Recomandari SET tip_recomandare=?, indicatii=? WHERE id_recomandare=?');
         return $stmt->execute([$data['tip_recomandare'], $data['indicatii'], $id]);
     }
     
     public static function delete($id) {
         if (isMockMode()) { unset($GLOBALS['MOCK_RECOMANDARI'][$id]); return true; }
-        return db()->prepare('DELETE FROM Recomandari WHERE id_recomandare = ?')->execute([$id]);
+        $old = self::findById($id);
+        if ($old) VersionHistoryRepo::saveSnapshot('Recomandari', $id, 'ARCHIVE', $old);
+        return db()->prepare('UPDATE Recomandari SET is_deleted = 1 WHERE id_recomandare = ?')->execute([$id]);
     }
 }

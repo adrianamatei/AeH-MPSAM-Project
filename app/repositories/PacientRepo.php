@@ -33,7 +33,7 @@ class PacientRepo {
             return array_values(array_filter($GLOBALS['MOCK_PACIENT'], 
                 fn($p) => $p['id_medic'] == $idMedic));
         }
-        $stmt = db()->prepare('SELECT *, CNP as cnp FROM Pacient WHERE id_medic = ? ORDER BY nume, prenume');
+        $stmt = db()->prepare('SELECT *, CNP as cnp FROM Pacient WHERE id_medic = ? AND is_deleted = 0 ORDER BY nume, prenume');
         $stmt->execute([$idMedic]);
         return $stmt->fetchAll();
     }
@@ -59,7 +59,7 @@ class PacientRepo {
             }));
         }
         $like = '%' . $query . '%';
-        $sql = 'SELECT *, CNP as cnp FROM Pacient WHERE (nume LIKE ? OR prenume LIKE ? OR CNP LIKE ?)';
+        $sql = 'SELECT *, CNP as cnp FROM Pacient WHERE is_deleted = 0 AND (nume LIKE ? OR prenume LIKE ? OR CNP LIKE ?)';
         $params = [$like, $like, $like];
         if ($idMedic) {
             $sql .= ' AND id_medic = ?';
@@ -77,11 +77,11 @@ class PacientRepo {
             return count(array_filter($GLOBALS['MOCK_PACIENT'], fn($p) => $p['id_medic'] == $idMedic));
         }
         if ($idMedic) {
-            $stmt = db()->prepare('SELECT COUNT(*) FROM Pacient WHERE id_medic = ?');
+            $stmt = db()->prepare('SELECT COUNT(*) FROM Pacient WHERE id_medic = ? AND is_deleted = 0');
             $stmt->execute([$idMedic]);
             return (int)$stmt->fetchColumn();
         }
-        return (int)db()->query('SELECT COUNT(*) FROM Pacient')->fetchColumn();
+        return (int)db()->query('SELECT COUNT(*) FROM Pacient WHERE is_deleted = 0')->fetchColumn();
     }
     
     public static function insert($data) {
@@ -117,6 +117,10 @@ class PacientRepo {
             $GLOBALS['MOCK_PACIENT'][$id] = array_merge($GLOBALS['MOCK_PACIENT'][$id], $data);
             return true;
         }
+        // Salvează snapshot înainte de modificare (EuroRec GS001539.2)
+        $old = self::findById($id);
+        if ($old) VersionHistoryRepo::saveSnapshot('Pacient', $id, 'UPDATE', $old, $data);
+        
         $stmt = db()->prepare('UPDATE Pacient SET 
             nume=?, prenume=?, varsta=?, sex=?, data_nasterii=?, CNP=?, strada=?, oras=?, judet=?, telefon=?,
             profesie=?, loc_de_munca=?, istoric_medical=?, alergii=?
@@ -135,7 +139,11 @@ class PacientRepo {
             unset($GLOBALS['MOCK_PACIENT'][$id]);
             return true;
         }
-        $stmt = db()->prepare('DELETE FROM Pacient WHERE id = ?');
+        // Salvează snapshot înainte de arhivare
+        $old = self::findById($id);
+        if ($old) VersionHistoryRepo::saveSnapshot('Pacient', $id, 'ARCHIVE', $old);
+        
+        $stmt = db()->prepare('UPDATE Pacient SET is_deleted = 1 WHERE id = ?');
         return $stmt->execute([$id]);
     }
     

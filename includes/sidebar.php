@@ -61,10 +61,6 @@ $_role = $_user['rol'] ?? '';
            class="menu-item <?= activeIf($_active, 'alarme') ?>">
             <span class="icon">⚠</span> Alarme
         </a>
-        <a href="<?= url('dispozitive.php') ?>" 
-           class="menu-item <?= activeIf($_active, 'dispozitive') ?>">
-            <span class="icon">📱</span> Dispozitive
-        </a>
     </div>
     
     <div class="menu-section">
@@ -96,6 +92,14 @@ $_role = $_user['rol'] ?? '';
         <a href="<?= url('audit_log.php') ?>" 
            class="menu-item <?= activeIf($_active, 'audit_log') ?>">
             <span class="icon">🔍</span> Audit log
+        </a>
+        <a href="<?= url('arhiva.php') ?>" 
+           class="menu-item <?= activeIf($_active, 'arhiva') ?>">
+            <span class="icon">📦</span> Arhivă
+        </a>
+        <a href="<?= url('versiuni.php') ?>" 
+           class="menu-item <?= activeIf($_active, 'versiuni') ?>">
+            <span class="icon">📜</span> Istoric versiuni
         </a>
     </div>
 

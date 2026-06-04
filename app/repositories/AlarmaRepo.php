@@ -39,7 +39,7 @@ class AlarmaRepo {
             return array_values(array_filter($GLOBALS['MOCK_ALARME'],
                 fn($a) => $a['id_pacient'] == $idPacient));
         }
-        $stmt = db()->prepare('SELECT * FROM Alarme WHERE id_pacient = ? ORDER BY moment_declansare DESC');
+        $stmt = db()->prepare('SELECT * FROM Alarme WHERE id_pacient = ? AND is_deleted = 0 ORDER BY moment_declansare DESC');
         $stmt->execute([$idPacient]);
         return self::normalizeAll($stmt->fetchAll());
     }
@@ -53,7 +53,7 @@ class AlarmaRepo {
         }
         $stmt = db()->prepare('SELECT a.* FROM Alarme a 
             INNER JOIN Pacient p ON a.id_pacient = p.id 
-            WHERE p.id_medic = ? ORDER BY a.moment_declansare DESC');
+            WHERE p.id_medic = ? AND a.is_deleted = 0 ORDER BY a.moment_declansare DESC');
         $stmt->execute([$idMedic]);
         return self::normalizeAll($stmt->fetchAll());
     }
@@ -68,10 +68,10 @@ class AlarmaRepo {
         if ($idMedic) {
             $stmt = db()->prepare("SELECT TOP {$limit} a.* FROM Alarme a 
                 INNER JOIN Pacient p ON a.id_pacient = p.id 
-                WHERE p.id_medic = ? ORDER BY a.moment_declansare DESC");
+                WHERE p.id_medic = ? AND a.is_deleted = 0 ORDER BY a.moment_declansare DESC");
             $stmt->execute([$idMedic]);
         } else {
-            $stmt = db()->query("SELECT TOP {$limit} * FROM Alarme ORDER BY moment_declansare DESC");
+            $stmt = db()->query("SELECT TOP {$limit} * FROM Alarme WHERE is_deleted = 0 ORDER BY moment_declansare DESC");
         }
         return self::normalizeAll($stmt->fetchAll());
     }
@@ -102,6 +102,9 @@ class AlarmaRepo {
             $GLOBALS['MOCK_ALARME'][$id] = array_merge($GLOBALS['MOCK_ALARME'][$id], $data);
             return true;
         }
+        $old = self::findById($id);
+        if ($old) VersionHistoryRepo::saveSnapshot('Alarme', $id, 'UPDATE', $old, $data);
+        
         $stmt = db()->prepare('UPDATE Alarme SET 
             tip_alarma=?, valoare_declansatoare=?, prag_min=?, prag_max=?, durata_persistenta=?, mesaj=?
             WHERE id=?');
@@ -116,6 +119,8 @@ class AlarmaRepo {
     
     public static function delete($id) {
         if (isMockMode()) { unset($GLOBALS['MOCK_ALARME'][$id]); return true; }
-        return db()->prepare('DELETE FROM Alarme WHERE id = ?')->execute([$id]);
+        $old = self::findById($id);
+        if ($old) VersionHistoryRepo::saveSnapshot('Alarme', $id, 'ARCHIVE', $old);
+        return db()->prepare('UPDATE Alarme SET is_deleted = 1 WHERE id = ?')->execute([$id]);
     }
 }

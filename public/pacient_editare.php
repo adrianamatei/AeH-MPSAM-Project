@@ -18,16 +18,16 @@ if (!medicCanAccessPacient($idPacient)) {
 
 $errors = [];
 
-// Ștergere
+// Arhivare (soft-delete)
 if (isset($_POST['action']) && $_POST['action'] === 'delete') {
     requireCsrf();
     if (PacientRepo::delete($idPacient)) {
-        logCurrentUserAction('DELETE', 'Pacient', $idPacient, 
-            'Ștergere pacient: ' . PacientRepo::fullName($pacient));
-        flash('success', 'Pacient șters cu succes.');
+        logCurrentUserAction('ARCHIVE', 'Pacient', $idPacient, 
+            'Arhivare pacient: ' . PacientRepo::fullName($pacient));
+        flash('success', 'Pacient arhivat cu succes. Datele sunt păstrate și pot fi restaurate.');
         redirect(url('pacienti.php'));
     } else {
-        flash('error', 'Eroare la ștergere.');
+        flash('error', 'Eroare la arhivare.');
     }
 }
 
@@ -58,6 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save'
             'prenume' => trim($_POST['prenume']),
             'cnp' => $cnp,
             'varsta' => (int)$_POST['varsta'],
+            'sex' => trim($_POST['sex'] ?? ''),
+            'data_nasterii' => $_POST['data_nasterii'] ?? null,
             'strada' => trim($_POST['strada'] ?? ''),
             'oras' => trim($_POST['oras'] ?? ''),
             'judet' => trim($_POST['judet'] ?? ''),
@@ -121,7 +123,7 @@ renderFlash();
                 <div class="form-group">
                     <label class="form-label">CNP <span class="required">*</span></label>
                     <input type="text" name="cnp" class="form-control" 
-                           value="<?= e($d['cnp'] ?? '') ?>" required maxlength="13"
+                           value="<?= e($d['cnp'] ?? $d['CNP'] ?? '') ?>" required maxlength="13"
                            data-validate="cnp" pattern="[1-9][0-9]{12}">
                     <?php if (isset($errors['cnp'])): ?><div class="form-error"><?= e($errors['cnp']) ?></div><?php endif; ?>
                 </div>
@@ -129,6 +131,21 @@ renderFlash();
                     <label class="form-label">Vârstă <span class="required">*</span></label>
                     <input type="number" name="varsta" class="form-control" 
                            value="<?= e($d['varsta'] ?? '') ?>" required min="0" max="120">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Sex</label>
+                    <select name="sex" class="form-control">
+                        <option value="">— Selectează —</option>
+                        <option value="Masculin" <?= (($d['sex'] ?? '') === 'Masculin') ? 'selected' : '' ?>>Masculin</option>
+                        <option value="Feminin" <?= (($d['sex'] ?? '') === 'Feminin') ? 'selected' : '' ?>>Feminin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Data nașterii</label>
+                    <input type="date" name="data_nasterii" class="form-control" 
+                           value="<?= e($d['data_nasterii'] ?? '') ?>">
                 </div>
             </div>
         </div>
@@ -192,19 +209,20 @@ renderFlash();
     </div>
 </form>
 
-<!-- Form separat pentru ștergere -->
+<!-- Form separat pentru arhivare -->
 <form method="POST" action="" style="margin-top: var(--sp-5);">
     <input type="hidden" name="<?= CSRF_TOKEN_NAME ?>" value="<?= csrfToken() ?>">
     <input type="hidden" name="action" value="delete">
-    <div class="card" style="border-color: var(--danger);">
-        <div class="card-header" style="background: var(--danger-bg);">
-            <h3 class="text-danger">⚠ Zona periculoasă</h3>
+    <div class="card" style="border-color: var(--warning);">
+        <div class="card-header" style="background: #fff8e8;">
+            <h3 style="color: var(--warning);">📦 Arhivare pacient</h3>
         </div>
         <div class="card-body">
-            <p>Ștergerea pacientului va elimina toate datele asociate (consultații, alarme, măsurători). Această acțiune nu poate fi anulată.</p>
+            <p>Pacientul va fi arhivat și nu va mai apărea în listele active. 
+               Datele asociate (consultații, alarme, măsurători) sunt păstrate și pot fi restaurate ulterior.</p>
             <button type="submit" class="btn btn-danger" 
-                    data-confirm="ATENȚIE: Ștergerea va elimina pacientul și toate datele asociate. Sigur continui?">
-                🗑 Șterge pacientul
+                    data-confirm="Ești sigur că vrei să arhivezi acest pacient?">
+                📦 Arhivează pacientul
             </button>
         </div>
     </div>

@@ -3,6 +3,28 @@ require_once __DIR__ . '/../app/config.php';
 requireRole('medic');
 
 $tab = $_GET['tab'] ?? 'toate';
+
+// Funcție helper: caută medic după id_medic SAU id_utilizator
+function resolveMedicName($id) {
+    // Încearcă mai întâi ca id_medic
+    $medic = MedicRepo::findById($id);
+    if ($medic) {
+        $name = trim(($medic['nume'] ?? '') . ' ' . ($medic['prenume'] ?? ''));
+        return 'Dr. ' . $name;
+    }
+    // Încearcă ca id_utilizator
+    $medic = MedicRepo::findByUtilizator($id);
+    if ($medic) {
+        $name = trim(($medic['nume'] ?? '') . ' ' . ($medic['prenume'] ?? ''));
+        return 'Dr. ' . $name;
+    }
+    // Poate fi un pacient
+    $pacient = PacientRepo::findById($id);
+    if ($pacient) {
+        return PacientRepo::fullName($pacient);
+    }
+    return 'ID #' . $id;
+}
 $mesaje = match($tab) {
     'primite' => MesajHL7Repo::primite(),
     'trimise' => MesajHL7Repo::trimise(),
@@ -36,6 +58,16 @@ renderFlash();
 <?php else: ?>
     <?php foreach ($mesaje as $m):
         $isPrimit = stripos($m['tip_mesaj'], 'trimitere') !== false;
+        
+        // Rezolvă ID-uri în nume
+        $sursaNume = $m['sursa'];
+        $destNume = $m['destinatie'];
+        if (is_numeric($m['sursa'])) {
+            $sursaNume = resolveMedicName((int)$m['sursa']);
+        }
+        if (is_numeric($m['destinatie'])) {
+            $destNume = resolveMedicName((int)$m['destinatie']);
+        }
     ?>
         <div class="card">
             <div class="card-header">
@@ -48,8 +80,8 @@ renderFlash();
             </div>
             <div class="card-body">
                 <dl class="dl-grid mb-3">
-                    <dt>De la</dt><dd><?= e($m['sursa']) ?></dd>
-                    <dt>Către</dt><dd><?= e($m['destinatie']) ?></dd>
+                    <dt>De la</dt><dd><?= e($sursaNume) ?></dd>
+                    <dt>Către</dt><dd><?= e($destNume) ?></dd>
                 </dl>
                 <div class="form-label">Conținut mesaj:</div>
                 <pre style="background: var(--gray-50); padding: var(--sp-3); border-radius: var(--radius-sm); 

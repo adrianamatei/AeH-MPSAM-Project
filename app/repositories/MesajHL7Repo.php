@@ -8,7 +8,7 @@ class MesajHL7Repo {
     
     public static function all() {
         if (isMockMode()) { return array_values($GLOBALS['MOCK_MESAJE_HL7']); }
-        return db()->query('SELECT * FROM Mesaje ORDER BY moment_transmitere DESC')->fetchAll();
+        return db()->query('SELECT * FROM Mesaje WHERE is_deleted = 0 ORDER BY moment_transmitere DESC')->fetchAll();
     }
     
     public static function primite() {
@@ -16,7 +16,7 @@ class MesajHL7Repo {
             return array_values(array_filter($GLOBALS['MOCK_MESAJE_HL7'], 
                 fn($m) => stripos($m['tip_mesaj'], 'trimitere') !== false));
         }
-        return db()->query("SELECT * FROM Mesaje WHERE tip_mesaj LIKE '%trimitere%' ORDER BY moment_transmitere DESC")->fetchAll();
+        return db()->query("SELECT * FROM Mesaje WHERE is_deleted = 0 AND tip_mesaj LIKE '%trimitere%' ORDER BY moment_transmitere DESC")->fetchAll();
     }
     
     public static function trimise() {
@@ -24,7 +24,7 @@ class MesajHL7Repo {
             return array_values(array_filter($GLOBALS['MOCK_MESAJE_HL7'], 
                 fn($m) => stripos($m['tip_mesaj'], 'scrisoare') !== false || stripos($m['tip_mesaj'], 'FHIR') !== false));
         }
-        return db()->query("SELECT * FROM Mesaje WHERE tip_mesaj LIKE '%scrisoare%' OR tip_mesaj LIKE '%FHIR%' ORDER BY moment_transmitere DESC")->fetchAll();
+        return db()->query("SELECT * FROM Mesaje WHERE is_deleted = 0 AND tip_mesaj LIKE '%scrisoare%' OR tip_mesaj LIKE '%FHIR%' ORDER BY moment_transmitere DESC")->fetchAll();
     }
     
     public static function insert($data) {

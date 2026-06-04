@@ -9,7 +9,7 @@ class DispozitivRepo {
         if (isMockMode()) {
             return array_values(array_filter($GLOBALS['MOCK_DISPOZITIVE'], fn($d) => $d['id_pacient'] == $idPacient));
         }
-        $stmt = db()->prepare('SELECT * FROM Dispozitive WHERE id_pacient = ?');
+        $stmt = db()->prepare('SELECT * FROM Dispozitive WHERE id_pacient = ? AND is_deleted = 0');
         $stmt->execute([$idPacient]);
         return $stmt->fetchAll();
     }
@@ -20,7 +20,7 @@ class DispozitivRepo {
             $ids = array_column($pacienti, 'id');
             return array_values(array_filter($GLOBALS['MOCK_DISPOZITIVE'], fn($d) => in_array($d['id_pacient'], $ids)));
         }
-        $stmt = db()->prepare('SELECT d.* FROM Dispozitive d INNER JOIN Pacient p ON d.id_pacient = p.id WHERE p.id_medic = ?');
+        $stmt = db()->prepare('SELECT d.* FROM Dispozitive d INNER JOIN Pacient p ON d.id_pacient = p.id WHERE p.id_medic = ? AND d.is_deleted = 0');
         $stmt->execute([$idMedic]);
         return $stmt->fetchAll();
     }
