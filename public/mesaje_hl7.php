@@ -18,8 +18,13 @@ function resolveMedicName($id) {
         $name = trim(($medic['nume'] ?? '') . ' ' . ($medic['prenume'] ?? ''));
         return 'Dr. ' . $name;
     }
-    // Poate fi un pacient
+    // Poate fi un pacient (după id)
     $pacient = PacientRepo::findById($id);
+    if ($pacient) {
+        return PacientRepo::fullName($pacient);
+    }
+    // Poate fi un pacient (după id_utilizator)
+    $pacient = PacientRepo::findByUtilizator($id);
     if ($pacient) {
         return PacientRepo::fullName($pacient);
     }
@@ -39,6 +44,9 @@ renderFlash();
     <div>
         <div class="breadcrumb">Comunicare</div>
         <h1>Mesaje HL7 / FHIR</h1>
+    </div>
+    <div class="page-actions">
+        <a href="<?= url('fhir_trimite.php') ?>" class="btn btn-primary">📤 Trimite scrisoare medicala</a>
     </div>
 </div>
 

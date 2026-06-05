@@ -130,6 +130,10 @@ renderFlash();
 </div>
 
 <?php if (hasRole('medic')): ?>
+<div class="d-flex gap-2 mt-4" style="flex-wrap:wrap;">
+    <a href="<?= url('fhir_trimite.php?id_consultatie=' . $idConsultatie) ?>" class="btn btn-primary">📤 Trimite scrisoare FHIR catre medicul de familie</a>
+</div>
+
 <form method="POST" action="" style="margin-top: var(--sp-5);">
     <input type="hidden" name="<?= CSRF_TOKEN_NAME ?>" value="<?= csrfToken() ?>">
     <input type="hidden" name="action" value="archive">
