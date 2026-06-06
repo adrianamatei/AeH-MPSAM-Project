@@ -51,7 +51,7 @@ class MedicatieRepo {
         
         $stmt = db()->prepare('UPDATE Medicatie SET 
             produs=?, forma_prezentare=?, doza=?, posologie=?, data_inceput=?, data_sfarsit=?, 
-            data_ultima_prescriere=?, status=?, observatii=?
+            data_ultima_prescriere=?, status=?, observatii=?, data_modificare=GETDATE()
             WHERE id=?');
         return $stmt->execute([
             $data['produs'], $data['forma_prezentare'] ?? null, $data['doza'] ?? null,
@@ -65,13 +65,13 @@ class MedicatieRepo {
         if (isMockMode()) return true;
         $old = self::findById($id);
         if ($old) VersionHistoryRepo::saveSnapshot('Medicatie', $id, 'ARCHIVE', $old);
-        return db()->prepare('UPDATE Medicatie SET is_deleted = 1 WHERE id = ?')->execute([$id]);
+        return db()->prepare('UPDATE Medicatie SET is_deleted = 1, data_modificare = GETDATE() WHERE id = ?')->execute([$id]);
     }
     
     public static function opreste($id) {
         if (isMockMode()) return true;
         $old = self::findById($id);
         if ($old) VersionHistoryRepo::saveSnapshot('Medicatie', $id, 'STOP', $old, ['status' => 'oprit']);
-        return db()->prepare("UPDATE Medicatie SET status = 'oprit', data_sfarsit = GETDATE() WHERE id = ?")->execute([$id]);
+        return db()->prepare("UPDATE Medicatie SET status = 'oprit', data_sfarsit = GETDATE(), data_modificare = GETDATE() WHERE id = ?")->execute([$id]);
     }
 }

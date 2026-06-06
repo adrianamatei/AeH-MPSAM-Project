@@ -51,7 +51,7 @@ class RecomandareRepo {
         $old = self::findById($id);
         if ($old) VersionHistoryRepo::saveSnapshot('Recomandari', $id, 'UPDATE', $old, $data);
         
-        $stmt = db()->prepare('UPDATE Recomandari SET tip_recomandare=?, indicatii=? WHERE id_recomandare=?');
+        $stmt = db()->prepare('UPDATE Recomandari SET tip_recomandare=?, indicatii=?, data_modificare=GETDATE() WHERE id_recomandare=?');
         return $stmt->execute([$data['tip_recomandare'], $data['indicatii'], $id]);
     }
     
@@ -59,6 +59,6 @@ class RecomandareRepo {
         if (isMockMode()) { unset($GLOBALS['MOCK_RECOMANDARI'][$id]); return true; }
         $old = self::findById($id);
         if ($old) VersionHistoryRepo::saveSnapshot('Recomandari', $id, 'ARCHIVE', $old);
-        return db()->prepare('UPDATE Recomandari SET is_deleted = 1 WHERE id_recomandare = ?')->execute([$id]);
+        return db()->prepare('UPDATE Recomandari SET is_deleted = 1, data_modificare = GETDATE() WHERE id_recomandare = ?')->execute([$id]);
     }
 }

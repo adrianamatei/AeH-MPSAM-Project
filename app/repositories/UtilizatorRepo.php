@@ -31,7 +31,7 @@ class UtilizatorRepo {
             $GLOBALS['MOCK_UTILIZATORI'][$id]['parola'] = $hashedPassword;
             return true;
         }
-        $stmt = db()->prepare('UPDATE Utilizatori SET parola = ? WHERE id = ?');
+        $stmt = db()->prepare('UPDATE Utilizatori SET parola = ?, data_modificare = GETDATE() WHERE id = ?');
         return $stmt->execute([$hashedPassword, $id]);
     }
 }

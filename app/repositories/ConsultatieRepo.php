@@ -92,6 +92,6 @@ class ConsultatieRepo {
         }
         $old = self::findById($id);
         if ($old) VersionHistoryRepo::saveSnapshot('Consultatii', $id, 'ARCHIVE', $old);
-        return db()->prepare('UPDATE Consultatii SET is_deleted = 1 WHERE id = ?')->execute([$id]);
+        return db()->prepare('UPDATE Consultatii SET is_deleted = 1, data_modificare = GETDATE() WHERE id = ?')->execute([$id]);
     }
 }

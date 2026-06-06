@@ -106,7 +106,7 @@ class AlarmaRepo {
         if ($old) VersionHistoryRepo::saveSnapshot('Alarme', $id, 'UPDATE', $old, $data);
         
         $stmt = db()->prepare('UPDATE Alarme SET 
-            tip_alarma=?, valoare_declansatoare=?, prag_min=?, prag_max=?, durata_persistenta=?, mesaj=?
+            tip_alarma=?, valoare_declansatoare=?, prag_min=?, prag_max=?, durata_persistenta=?, mesaj=?, data_modificare=GETDATE()
             WHERE id=?');
         return $stmt->execute([
             $data['tip_alarma'],
@@ -121,6 +121,6 @@ class AlarmaRepo {
         if (isMockMode()) { unset($GLOBALS['MOCK_ALARME'][$id]); return true; }
         $old = self::findById($id);
         if ($old) VersionHistoryRepo::saveSnapshot('Alarme', $id, 'ARCHIVE', $old);
-        return db()->prepare('UPDATE Alarme SET is_deleted = 1 WHERE id = ?')->execute([$id]);
+        return db()->prepare('UPDATE Alarme SET is_deleted = 1, data_modificare = GETDATE() WHERE id = ?')->execute([$id]);
     }
 }

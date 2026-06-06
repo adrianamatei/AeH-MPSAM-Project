@@ -123,7 +123,7 @@ class PacientRepo {
         
         $stmt = db()->prepare('UPDATE Pacient SET 
             nume=?, prenume=?, varsta=?, sex=?, data_nasterii=?, CNP=?, strada=?, oras=?, judet=?, telefon=?,
-            profesie=?, loc_de_munca=?, istoric_medical=?, alergii=?
+            profesie=?, loc_de_munca=?, istoric_medical=?, alergii=?, data_modificare=GETDATE()
             WHERE id=?');
         return $stmt->execute([
             $data['nume'], $data['prenume'], $data['varsta'],
@@ -143,7 +143,7 @@ class PacientRepo {
         $old = self::findById($id);
         if ($old) VersionHistoryRepo::saveSnapshot('Pacient', $id, 'ARCHIVE', $old);
         
-        $stmt = db()->prepare('UPDATE Pacient SET is_deleted = 1 WHERE id = ?');
+        $stmt = db()->prepare('UPDATE Pacient SET is_deleted = 1, data_modificare = GETDATE() WHERE id = ?');
         return $stmt->execute([$id]);
     }
     

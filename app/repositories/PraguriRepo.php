@@ -35,7 +35,7 @@ class PraguriRepo {
         $exists = db()->prepare('SELECT 1 FROM PraguriPacient WHERE id_pacient = ?');
         $exists->execute([$idPacient]);
         if ($exists->fetch()) {
-            $stmt = db()->prepare('UPDATE PraguriPacient SET max_puls=?, min_puls=?, max_temp=? WHERE id_pacient=?');
+            $stmt = db()->prepare('UPDATE PraguriPacient SET max_puls=?, min_puls=?, max_temp=?, data_modificare=GETDATE() WHERE id_pacient=?');
             return $stmt->execute([$data['max_puls'] ?? 93.0, $data['min_puls'] ?? 68.0, $data['max_temp'] ?? 38.5, $idPacient]);
         } else {
             $stmt = db()->prepare('INSERT INTO PraguriPacient (id_pacient, max_puls, min_puls, max_temp) VALUES (?, ?, ?, ?)');

@@ -707,3 +707,24 @@ select.form-control {
 .search-bar .form-control {
     flex-grow: 1;
 }
+
+/* ── SIDEBAR ICONS (SVG clean) ── */
+.menu-item .icon {
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0;
+    flex-shrink: 0;
+}
+
+.menu-item .icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}

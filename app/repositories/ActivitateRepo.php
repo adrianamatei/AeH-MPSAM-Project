@@ -50,7 +50,7 @@ class ActivitateRepo {
             if (isset($GLOBALS['MOCK_ACTIVITATI'][$id])) $GLOBALS['MOCK_ACTIVITATI'][$id]['este_finalizata'] = $finalizata;
             return true;
         }
-        $stmt = db()->prepare('UPDATE Activitati SET este_finalizata = ? WHERE id_activitate = ?');
+        $stmt = db()->prepare('UPDATE Activitati SET este_finalizata = ?, data_modificare = GETDATE() WHERE id_activitate = ?');
         return $stmt->execute([$finalizata, $id]);
     }
 }
