@@ -8,15 +8,18 @@ if (!$pacient) { flash('error', 'Pacient negăsit.'); redirect(url('pacienti.php
 requireAccessToPacient($idPacient);
 
 $idMedic = currentMedicId();
+$idConsultatiePreset = (int)($_GET['id_consultatie'] ?? 0);
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireCsrf();
     
+    $idConsultatie = (int)($_POST['id_consultatie'] ?? 0);
+    
     $data = [
         'id_pacient' => $idPacient,
         'id_medic' => $idMedic,
-        'id_consultatie' => $_POST['id_consultatie'] ?? null,
+        'id_consultatie' => $idConsultatie ?: null,
         'produs' => trim($_POST['produs'] ?? ''),
         'forma_prezentare' => trim($_POST['forma_prezentare'] ?? ''),
         'doza' => trim($_POST['doza'] ?? ''),
@@ -36,7 +39,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($newId) {
             logCurrentUserAction('CREATE', 'Medicatie', $newId, 'Prescriere: ' . $data['produs'] . ' pentru ' . PacientRepo::fullName($pacient));
             flash('success', 'Medicament prescris cu succes.');
-            redirect(url('medicatie.php?id=' . $idPacient));
+            
+            // Dacă a venit dintr-o consultație, redirecționează înapoi acolo
+            if ($idConsultatie) {
+                redirect(url('consultatie_detalii.php?id=' . $idConsultatie));
+            } else {
+                redirect(url('medicatie.php?id=' . $idPacient));
+            }
         }
     }
 }
@@ -49,7 +58,12 @@ renderFlash();
     <div>
         <div class="breadcrumb">
             <a href="<?= url('pacient_detalii.php?id=' . $idPacient) ?>"><?= e(PacientRepo::fullName($pacient)) ?></a> / 
-            <a href="<?= url('medicatie.php?id=' . $idPacient) ?>">Medicație</a> / Prescrie
+            <?php if ($idConsultatiePreset): ?>
+                <a href="<?= url('consultatie_detalii.php?id=' . $idConsultatiePreset) ?>">Consultație</a> / 
+            <?php else: ?>
+                <a href="<?= url('medicatie.php?id=' . $idPacient) ?>">Medicație</a> / 
+            <?php endif; ?>
+            Prescrie
         </div>
         <h1>Prescrie medicament</h1>
     </div>
@@ -58,11 +72,11 @@ renderFlash();
 <!-- Alergii -->
 <?php if (!empty($pacient['alergii']) && $pacient['alergii'] !== 'Niciuna' && $pacient['alergii'] !== 'fara'): ?>
 <div class="flash flash-error">
-    ⚠ <strong>Alergii cunoscute:</strong> <?= e($pacient['alergii']) ?>
+    <strong>Alergii cunoscute:</strong> <?= e($pacient['alergii']) ?>
 </div>
 <?php endif; ?>
 
-<!-- Sumar pacient EuroRec GS002497.3 -->
+<!-- Sumar pacient -->
 <div class="card mb-4">
     <div class="card-body">
         <div class="d-flex align-center gap-3">
@@ -75,11 +89,18 @@ renderFlash();
     </div>
 </div>
 
+<?php if ($idConsultatiePreset): ?>
+<div class="flash flash-info">
+    Medicația va fi legată de consultația #<?= $idConsultatiePreset ?>.
+</div>
+<?php endif; ?>
+
 <form method="POST" action="" autocomplete="off">
     <input type="hidden" name="<?= CSRF_TOKEN_NAME ?>" value="<?= csrfToken() ?>">
+    <input type="hidden" name="id_consultatie" value="<?= $idConsultatiePreset ?>">
     
     <div class="card">
-        <div class="card-header"><h3>💊 Detalii medicament</h3></div>
+        <div class="card-header"><h3>Detalii medicament</h3></div>
         <div class="card-body">
             <div class="form-row">
                 <div class="form-group">
@@ -143,8 +164,12 @@ renderFlash();
     </div>
     
     <div class="form-actions">
-        <button type="submit" class="btn btn-primary btn-lg">💊 Prescrie medicamentul</button>
-        <a href="<?= url('medicatie.php?id=' . $idPacient) ?>" class="btn">Renunță</a>
+        <button type="submit" class="btn btn-primary btn-lg">Prescrie medicamentul</button>
+        <?php if ($idConsultatiePreset): ?>
+            <a href="<?= url('consultatie_detalii.php?id=' . $idConsultatiePreset) ?>" class="btn">Renunță</a>
+        <?php else: ?>
+            <a href="<?= url('medicatie.php?id=' . $idPacient) ?>" class="btn">Renunță</a>
+        <?php endif; ?>
     </div>
 </form>
 

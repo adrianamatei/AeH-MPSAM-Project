@@ -38,18 +38,6 @@ class PacientRepo {
         return $stmt->fetchAll();
     }
     
-    public static function findByCnp($cnp) {
-        if (isMockMode()) {
-            foreach ($GLOBALS['MOCK_PACIENT'] as $p) {
-                if ($p['cnp'] == $cnp) return $p;
-            }
-            return null;
-        }
-        $stmt = db()->prepare('SELECT *, CNP as cnp FROM Pacient WHERE CNP = ?');
-        $stmt->execute([$cnp]);
-        return $stmt->fetch() ?: null;
-    }
-    
     public static function search($query, $idMedic = null) {
         if (isMockMode()) {
             $q = mb_strtolower($query);
@@ -82,6 +70,18 @@ class PacientRepo {
             return (int)$stmt->fetchColumn();
         }
         return (int)db()->query('SELECT COUNT(*) FROM Pacient WHERE is_deleted = 0')->fetchColumn();
+    }
+    
+    public static function findByCNP($cnp) {
+        if (isMockMode()) {
+            foreach ($GLOBALS['MOCK_PACIENT'] as $p) {
+                if (($p['cnp'] ?? $p['CNP'] ?? '') === $cnp) return $p;
+            }
+            return null;
+        }
+        $stmt = db()->prepare('SELECT *, CNP as cnp FROM Pacient WHERE CNP = ?');
+        $stmt->execute([$cnp]);
+        return $stmt->fetch() ?: null;
     }
     
     public static function insert($data) {

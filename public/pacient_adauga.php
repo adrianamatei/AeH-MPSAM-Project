@@ -4,12 +4,12 @@ requireRole('medic');
 
 $idMedic = currentMedicId();
 $errors = [];
-$mode = $_POST['mode'] ?? 'nou'; // 'existent' sau 'nou'
+$mode = $_POST['mode'] ?? 'nou';
 
 // Pacienți fără medic (pentru dropdown "selectează existent")
 $pacientiDisponibili = [];
 if (!isMockMode()) {
-    $stmt = db()->prepare('SELECT id, nume, prenume, CNP as cnp, varsta FROM Pacient WHERE id_medic IS NULL ORDER BY nume, prenume');
+    $stmt = db()->prepare('SELECT id, nume, prenume, CNP as cnp, varsta FROM Pacient WHERE id_medic IS NULL AND is_deleted = 0 ORDER BY nume, prenume');
     $stmt->execute();
     $pacientiDisponibili = $stmt->fetchAll();
 }
@@ -18,7 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireCsrf();
     
     if ($mode === 'existent') {
-        // ═══ VARIANTA 1: Asociere pacient existent ═══
         $idPacientSelectat = (int)($_POST['id_pacient_existent'] ?? 0);
         if (!$idPacientSelectat) {
             $errors[] = 'Selectează un pacient din listă.';
@@ -29,11 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif (!empty($pacient['id_medic'])) {
                 $errors[] = 'Pacientul este deja asociat unui medic.';
             } else {
-                // Asociem pacientul cu medicul curent
                 if (isMockMode()) {
                     $GLOBALS['MOCK_PACIENT'][$idPacientSelectat]['id_medic'] = $idMedic;
                 } else {
-                    $stmt = db()->prepare('UPDATE Pacient SET id_medic = ? WHERE id = ?');
+                    $stmt = db()->prepare('UPDATE Pacient SET id_medic = ?, data_modificare = GETDATE() WHERE id = ?');
                     $stmt->execute([$idMedic, $idPacientSelectat]);
                 }
                 logCurrentUserAction('UPDATE', 'Pacient', $idPacientSelectat, 
@@ -44,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
     } else {
-        // ═══ VARIANTA 2: Adăugare pacient nou ═══
+        // Adăugare pacient nou
         $required = ['nume', 'prenume', 'cnp', 'varsta'];
         foreach ($required as $field) {
             if (empty(trim($_POST[$field] ?? ''))) {
@@ -62,12 +60,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors['email'] = 'Adresă email invalidă';
         }
         
-        // Verifică CNP duplicat
-        $existingPacient = $cnp ? PacientRepo::findByCnp($cnp) : null;
+        // Verificare CNP duplicat
+        $existingPacient = $cnp ? PacientRepo::findByCNP($cnp) : null;
         if ($existingPacient && $existingPacient['id_medic'] == $idMedic) {
             $errors['cnp'] = 'Acest pacient este deja în lista ta.';
         } elseif ($existingPacient && !empty($existingPacient['id_medic'])) {
             $errors['cnp'] = 'CNP deja asociat altui medic.';
+        } elseif ($existingPacient && !empty($existingPacient['is_deleted'])) {
+            $errors['cnp'] = 'Un pacient arhivat cu acest CNP există deja. Restaurează-l din Arhivă.';
         }
         
         // Verifică email duplicat în Utilizatori
@@ -92,7 +92,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     logAction($idUtilizatorNou, 'REGISTER', 'Utilizatori', $idUtilizatorNou, 
                         'Cont creat automat de medic pentru pacient');
                 } catch (\PDOException $e) {
-                    // Cont nu s-a putut crea — continuăm fără
                     $idUtilizatorNou = null;
                 }
             }
@@ -117,14 +116,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ];
                 
                 if (!isMockMode()) {
-                    $sql = 'UPDATE Pacient SET id_medic=?, nume=?, prenume=?, varsta=?, sex=?, data_nasterii=?, strada=?, oras=?, judet=?, telefon=?, profesie=?, loc_de_munca=?, istoric_medical=?, alergii=?';
+                    $sql = 'UPDATE Pacient SET id_medic=?, nume=?, prenume=?, varsta=?, sex=?, data_nasterii=?, strada=?, oras=?, judet=?, telefon=?, profesie=?, loc_de_munca=?, istoric_medical=?, alergii=?, data_modificare=GETDATE()';
                     $params = [$idMedic, $updateData['nume'], $updateData['prenume'], $updateData['varsta'], $updateData['sex'], $updateData['data_nasterii'], $updateData['strada'], $updateData['oras'], $updateData['judet'], $updateData['telefon'], $updateData['profesie'], $updateData['loc_de_munca'], $updateData['istoric_medical'], $updateData['alergii']];
                     if ($idUtilizatorNou) { $sql .= ', id_utilizator=?, email=?'; $params[] = $idUtilizatorNou; $params[] = $email; }
                     $sql .= ' WHERE id=?'; $params[] = $existingPacient['id'];
                     db()->prepare($sql)->execute($params);
                 }
                 
-                // Trimite email de notificare
                 if ($email && $idUtilizatorNou) {
                     sendWelcomeEmail($email, trim($_POST['prenume']), 'parola123');
                 }
@@ -157,7 +155,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $newId = PacientRepo::insert($data);
                 
                 if ($newId) {
-                    // Trimite email de notificare
                     if ($email && $idUtilizatorNou) {
                         sendWelcomeEmail($email, $data['prenume'], 'parola123');
                     }
@@ -175,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (!empty($errors) && is_array($errors)) {
         foreach ($errors as $key => $val) {
-            if (is_string($key)) continue; // skip field-specific errors
+            if (is_string($key)) continue;
             flash('error', $val);
         }
     }
@@ -194,13 +191,12 @@ renderFlash();
     </div>
 </div>
 
-<!-- TABS: Selectează mod -->
 <div class="tabs" style="margin-bottom: var(--sp-6);">
-    <a href="#" class="tab active" data-tab="nou" onclick="switchTab('nou'); return false;">Utilizator nou</a>
-    <a href="#" class="tab" data-tab="existent" onclick="switchTab('existent'); return false;">🔍 Utilizator existent</a>
+    <a href="#" class="tab active" data-tab="nou" onclick="switchTab('nou'); return false;">Pacient nou</a>
+    <a href="#" class="tab" data-tab="existent" onclick="switchTab('existent'); return false;">Pacient existent</a>
 </div>
 
-<!-- ═══ TAB 1: SELECTARE PACIENT EXISTENT ═══ -->
+<!-- TAB: SELECTARE PACIENT EXISTENT -->
 <div id="tab-existent" style="display:none;">
     <form method="POST" action="">
         <input type="hidden" name="<?= CSRF_TOKEN_NAME ?>" value="<?= csrfToken() ?>">
@@ -211,7 +207,6 @@ renderFlash();
             <div class="card-body">
                 <?php if (empty($pacientiDisponibili)): ?>
                     <div class="empty-state">
-                        <div class="empty-icon">👤</div>
                         <h3>Niciun pacient disponibil</h3>
                         <p>Nu există pacienți înregistrați care să nu fie asociați unui medic.</p>
                     </div>
@@ -239,13 +234,12 @@ renderFlash();
     </form>
 </div>
 
-<!-- ═══ TAB 2: ADAUGĂ PACIENT NOU ═══ -->
+<!-- TAB: ADAUGĂ PACIENT NOU -->
 <div id="tab-nou">
     <form method="POST" action="" autocomplete="off">
         <input type="hidden" name="<?= CSRF_TOKEN_NAME ?>" value="<?= csrfToken() ?>">
         <input type="hidden" name="mode" value="nou">
         
-        <!-- Date demografice -->
         <div class="card">
             <div class="card-header"><h3>Date demografice</h3></div>
             <div class="card-body">
@@ -301,18 +295,17 @@ renderFlash();
             </div>
         </div>
         
-        <!-- Cont & Contact -->
         <div class="card">
-            <div class="card-header"><h3>Cont & Contact</h3></div>
+            <div class="card-header"><h3>Contact</h3></div>
             <div class="card-body">
                 <div class="flash flash-info" style="margin-bottom: var(--sp-4);">
-                    💡 Dacă introduci un email, sistemul va crea automat un cont pentru pacient 
+                    Dacă introduci un email, sistemul va crea automat un cont pentru pacient 
                     (parola implicită: <strong>parola123</strong>) și îi va trimite un email de notificare.
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Email pacient (pentru creare cont automat)</label>
+                        <label class="form-label">Email pacient</label>
                         <input type="email" name="email" class="form-control" 
                                value="<?= e(old('email')) ?>"
                                placeholder="exemplu@email.ro">
@@ -363,7 +356,6 @@ renderFlash();
             </div>
         </div>
         
-        <!-- Date medicale -->
         <div class="card">
             <div class="card-header"><h3>Date medicale</h3></div>
             <div class="card-body">
@@ -381,7 +373,7 @@ renderFlash();
         </div>
         
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary btn-lg">💾 Salvează pacient</button>
+            <button type="submit" class="btn btn-primary btn-lg">Salvează pacient</button>
             <a href="<?= url('pacienti.php') ?>" class="btn">Renunță</a>
         </div>
     </form>

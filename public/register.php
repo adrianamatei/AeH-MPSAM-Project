@@ -16,7 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nume = trim($_POST['nume'] ?? '');
     $prenume = trim($_POST['prenume'] ?? '');
     
-    // Validări
     if (empty($email) || empty($parola) || empty($rol) || empty($nume) || empty($prenume)) {
         $error = 'Toate câmpurile sunt obligatorii.';
     } elseif (!isValidEmail($email)) {
@@ -30,51 +29,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (UtilizatorRepo::findByEmail($email)) {
         $error = 'Există deja un cont cu acest email.';
     } else {
-        $hashedPassword = password_hash($parola, PASSWORD_BCRYPT);
-        
-        if (isMockMode()) {
-            $error = 'Înregistrarea nu funcționează în modul mock.';
-        } else {
-            try {
-                // 1. Creează utilizatorul
-                $stmt = db()->prepare('INSERT INTO Utilizatori (email, parola, rol) VALUES (?, ?, ?)');
-                $stmt->execute([$email, $hashedPassword, ucfirst($rol)]);
-                $userId = (int)db()->lastInsertId();
-                
-                if ($rol === 'medic') {
-                    // 2. Creează entrada în tabela Medic
-                    $specializare = trim($_POST['specializare'] ?? 'Cardiologie');
-                    $telefon = trim($_POST['telefon'] ?? '');
-                    $stmt = db()->prepare('INSERT INTO Medic (nume, prenume, specializare, telefon, id_utilizator) VALUES (?, ?, ?, ?, ?)');
-                    $stmt->execute([$nume, $prenume, $specializare, $telefon, $userId]);
-                } elseif ($rol === 'pacient') {
-                    // 2. Caută pacientul existent (creat de medic) după CNP
-                    $cnp = trim($_POST['cnp'] ?? '');
-                    $telefon = trim($_POST['telefon'] ?? '');
-                    
-                    $existingPacient = null;
-                    if ($cnp) {
-                        $stmtFind = db()->prepare('SELECT id FROM Pacient WHERE CNP = ?');
-                        $stmtFind->execute([$cnp]);
-                        $existingPacient = $stmtFind->fetch();
-                    }
-                    
-                    if ($existingPacient) {
-                        // Pacientul există (creat de medic) — doar legăm contul
-                        $stmtUpdate = db()->prepare('UPDATE Pacient SET id_utilizator = ? WHERE id = ?');
-                        $stmtUpdate->execute([$userId, $existingPacient['id']]);
-                    } else {
-                        // Pacient nou (fără medic asociat încă)
-                        $stmt = db()->prepare('INSERT INTO Pacient (nume, prenume, varsta, CNP, telefon, id_utilizator) VALUES (?, ?, ?, ?, ?, ?)');
-                        $stmt->execute([$nume, $prenume, 0, $cnp, $telefon, $userId]);
-                    }
+        // Verificare CNP pentru pacient
+        $cnp = trim($_POST['cnp'] ?? '');
+        if ($rol === 'pacient') {
+            if (empty($cnp)) {
+                $error = 'CNP-ul este obligatoriu pentru pacienți.';
+            } elseif (!isValidCNP($cnp)) {
+                $error = 'CNP invalid (trebuie să aibă 13 cifre).';
+            } else {
+                $existingPacient = PacientRepo::findByCNP($cnp);
+                if ($existingPacient && !empty($existingPacient['id_utilizator'])) {
+                    $error = 'Acest CNP are deja un cont asociat. Folosește pagina de login.';
                 }
-                
-                logAction($userId, 'REGISTER', 'Utilizatori', $userId, 'Cont nou: ' . $email . ' (' . $rol . ')');
-                $success = 'Contul a fost creat cu succes! Te poți autentifica acum.';
-                
-            } catch (\PDOException $e) {
-                $error = 'Eroare la crearea contului: ' . $e->getMessage();
+            }
+        }
+        
+        if (empty($error)) {
+            $hashedPassword = password_hash($parola, PASSWORD_BCRYPT);
+            
+            if (isMockMode()) {
+                $error = 'Înregistrarea nu funcționează în modul mock.';
+            } else {
+                try {
+                    $stmt = db()->prepare('INSERT INTO Utilizatori (email, parola, rol) VALUES (?, ?, ?)');
+                    $stmt->execute([$email, $hashedPassword, ucfirst($rol)]);
+                    $userId = (int)db()->lastInsertId();
+                    
+                    if ($rol === 'medic') {
+                        $specializare = trim($_POST['specializare'] ?? 'Cardiologie');
+                        $telefon = trim($_POST['telefon'] ?? '');
+                        $stmt = db()->prepare('INSERT INTO Medic (nume, prenume, specializare, telefon, id_utilizator) VALUES (?, ?, ?, ?, ?)');
+                        $stmt->execute([$nume, $prenume, $specializare, $telefon, $userId]);
+                    } elseif ($rol === 'pacient') {
+                        $telefon = trim($_POST['telefon'] ?? '');
+                        
+                        $existingPacient = PacientRepo::findByCNP($cnp);
+                        
+                        if ($existingPacient) {
+                            $stmtUpdate = db()->prepare('UPDATE Pacient SET id_utilizator = ?, data_modificare = GETDATE() WHERE id = ?');
+                            $stmtUpdate->execute([$userId, $existingPacient['id']]);
+                        } else {
+                            $stmt = db()->prepare('INSERT INTO Pacient (nume, prenume, varsta, CNP, telefon, id_utilizator) VALUES (?, ?, ?, ?, ?, ?)');
+                            $stmt->execute([$nume, $prenume, 0, $cnp, $telefon, $userId]);
+                        }
+                    }
+                    
+                    logAction($userId, 'REGISTER', 'Utilizatori', $userId, 'Cont nou: ' . $email . ' (' . $rol . ')');
+                    $success = 'Contul a fost creat cu succes! Te poți autentifica acum.';
+                    
+                } catch (\PDOException $e) {
+                    $error = 'Eroare la crearea contului: ' . $e->getMessage();
+                }
             }
         }
     }
@@ -129,7 +134,7 @@ renderHeader('Înregistrare', '');
             <input type="email" name="email" class="form-control" value="<?= e($_POST['email'] ?? '') ?>" required placeholder="exemplu@vitalcares.ro">
         </div>
         
-        <div class="form-group">
+        <div id="spec-group" class="form-group">
             <label class="form-label">Specializare</label>
             <input type="text" name="specializare" class="form-control" value="<?= e($_POST['specializare'] ?? 'Cardiologie') ?>" placeholder="ex: Cardiologie">
         </div>
@@ -169,10 +174,8 @@ renderHeader('Înregistrare', '');
 <script>
 function toggleFields() {
     var rol = document.getElementById('rol-select').value;
-    var specGroup = document.querySelector('[name="specializare"]').parentElement;
-    var cnpGroup = document.getElementById('cnp-group');
-    specGroup.style.display = (rol === 'medic') ? 'block' : 'none';
-    cnpGroup.style.display = (rol === 'pacient') ? 'block' : 'none';
+    document.getElementById('spec-group').style.display = (rol === 'medic') ? 'block' : 'none';
+    document.getElementById('cnp-group').style.display = (rol === 'pacient') ? 'block' : 'none';
 }
 toggleFields();
 </script>
