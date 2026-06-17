@@ -65,7 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $postData = json_encode([
             'id_consultatie' => $idCons, 
             'url_destinatie' => $urlDest,
-            'nume_destinatar' => trim($_POST['nume_destinatar'] ?? 'Medic de familie')
+            'nume_destinatar' => trim($_POST['nume_destinatar'] ?? 'Medic de familie'),
+            'api_key' => trim($_POST['api_key'] ?? '')
         ]);
         
         $ch = curl_init('http://localhost:8000/api/fhir_send.php');
@@ -85,6 +86,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($result && ($result['success'] ?? false)) {
             logCurrentUserAction('SEND_FHIR', 'Mesaje', $idCons, 'Scrisoare FHIR trimisa catre: ' . $urlDest);
             flash('success', 'Scrisoarea medicala FHIR a fost trimisa cu succes!');
+            redirect(url('mesaje_hl7.php'));
+        } elseif ($httpCode >= 200 && $httpCode < 300) {
+            // Răspuns HTTP OK dar fără câmp "success" — tot e bine
+            logCurrentUserAction('SEND_FHIR', 'Mesaje', $idCons, 'Scrisoare FHIR trimisa catre: ' . $urlDest . ' (HTTP ' . $httpCode . ')');
+            flash('success', 'Scrisoarea medicala FHIR a fost trimisa cu succes! (HTTP ' . $httpCode . ')');
             redirect(url('mesaje_hl7.php'));
         } else {
             $error = 'Eroare la trimitere: ' . ($result['error'] ?? $response ?? 'Raspuns necunoscut');
@@ -169,9 +175,15 @@ renderFlash();
             <div class="form-group">
                 <label class="form-label">URL-ul endpoint-ului colegei <span class="required">*</span></label>
                 <input type="url" name="url_destinatie" class="form-control" required
-                       value="<?= e($_POST['url_destinatie'] ?? 'http://localhost:8001/api/fhir_receive.php') ?>"
+                       value="<?= e($_POST['url_destinatie'] ?? 'https://dandelion-bundle-raisin.ngrok-free.dev/api/hl7messages/receive') ?>"
                        placeholder="http://ip-colega:port/api/fhir_receive.php">
-                <div class="form-help">Introdu adresa la care ruleaza serverul colegei. Daca e pe acelasi PC, schimba portul (ex: 8001).</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">API Key (dacă e necesar)</label>
+                <input type="text" name="api_key" class="form-control"
+                       value="<?= e($_POST['api_key'] ?? 'aeh-demo-2026') ?>"
+                       placeholder="ex: aeh-demo-2026">
             </div>
             
             <div class="form-group">

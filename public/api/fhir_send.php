@@ -11,6 +11,7 @@ if (!$input) $input = $_POST;
 $idConsultatie = (int)($input['id_consultatie'] ?? 0);
 $urlDestinatie = trim($input['url_destinatie'] ?? '');
 $numeDestinatar = trim($input['nume_destinatar'] ?? 'Medic de familie');
+$apiKey = trim($input['api_key'] ?? '');
 
 if (!$idConsultatie || !$urlDestinatie) {
     apiError('id_consultatie si url_destinatie sunt obligatorii.');
@@ -61,11 +62,16 @@ $fhirMessage = [
 $jsonBody = json_encode($fhirMessage, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
 // Trimitem catre sistemul colegei
+$headers = ['Content-Type: application/fhir+json', 'Accept: application/json'];
+if ($apiKey) {
+    $headers[] = 'X-Api-Key: ' . $apiKey;
+}
+
 $ch = curl_init($urlDestinatie);
 curl_setopt_array($ch, [
     CURLOPT_POST => true,
     CURLOPT_POSTFIELDS => $jsonBody,
-    CURLOPT_HTTPHEADER => ['Content-Type: application/fhir+json', 'Accept: application/json'],
+    CURLOPT_HTTPHEADER => $headers,
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_TIMEOUT => 10,
     CURLOPT_SSL_VERIFYPEER => false,
