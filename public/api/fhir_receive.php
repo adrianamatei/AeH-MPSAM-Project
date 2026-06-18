@@ -40,24 +40,34 @@ if ($json['resourceType'] === 'Bundle' && !empty($json['entry'])) {
         // Extrage datele pacientului
         if ($resType === 'Patient') {
             $cnpPacient = '';
-            foreach (($resource['identifier'] ?? []) as $ident) {
-                if (!empty($ident['value'])) {
-                    $cnpPacient = $ident['value'];
-                    break;
+            
+            // Parsare corectată și sigură pentru CNP
+            if (!empty($resource['identifier']) && is_array($resource['identifier'])) {
+                foreach ($resource['identifier'] as $ident) {
+                    if (isset($ident['value']) && $ident['value'] !== '') {
+                        $cnpPacient = trim($ident['value']);
+                        break;
+                    }
                 }
             }
-            $family = $resource['name'][0]['family'] ?? '';
+            
+            $family = $resource['name'][0]['family'] ?? 'Necunoscut';
             $given = $resource['name'][0]['given'][0] ?? '';
             $numePacient = trim($family . ' ' . $given);
             $gender = $resource['gender'] ?? '';
-            $birthDate = $resource['birthDate'] ?? '';
+            $birthDate = $resource['birthDate'] ?? null;
             
-            // Verificăm dacă pacientul există la noi după CNP
-            if ($cnpPacient && !isMockMode()) {
+            // Verificăm și creăm pacientul (fără a mai bloca dacă lipsește temporar CNP-ul)
+            if (!isMockMode()) {
                 try {
-                    $stmt = db()->prepare('SELECT id, id_medic, nume, prenume FROM Pacient WHERE CNP = ?');
-                    $stmt->execute([$cnpPacient]);
-                    $pacientExistent = $stmt->fetch();
+                    $pacientExistent = false;
+                    
+                    // Căutăm pacientul doar dacă am reușit să extragem un CNP
+                    if (!empty($cnpPacient)) {
+                        $stmt = db()->prepare('SELECT id, id_medic, nume, prenume FROM Pacient WHERE CNP = ?');
+                        $stmt->execute([$cnpPacient]);
+                        $pacientExistent = $stmt->fetch();
+                    }
                     
                     if (!$pacientExistent) {
                         // Creăm pacientul fără medic — un cardiolog îl va asocia manual
@@ -67,11 +77,15 @@ if ($json['resourceType'] === 'Bundle' && !empty($json['entry'])) {
                             $varsta = (int)date_diff(date_create($birthDate), date_create('now'))->y;
                         }
                         
+                        $cnpDeInserat = !empty($cnpPacient) ? $cnpPacient : null;
+                        
                         $stmt = db()->prepare('INSERT INTO Pacient (nume, prenume, CNP, varsta, sex, data_nasterii) VALUES (?, ?, ?, ?, ?, ?)');
-                        $stmt->execute([$family, $given, $cnpPacient, $varsta, $sex, $birthDate ?: null]);
+                        $stmt->execute([$family, $given, $cnpDeInserat, $varsta, $sex, $birthDate]);
                     }
                 } catch (\PDOException $e) {
-                    // Pacientul poate exista deja — continuăm
+                    // Salvăm eroarea SQL pentru a o vedea direct în interfață
+                    error_log('EROARE DB PACIENT FHIR: ' . $e->getMessage());
+                    $detaliiTrimitere .= "\n\n[EROARE SQL LA CREAREA PACIENTULUI: " . $e->getMessage() . "]";
                 }
             }
         }
@@ -81,7 +95,9 @@ if ($json['resourceType'] === 'Bundle' && !empty($json['entry'])) {
             $motiv = $resource['reasonCode'][0]['text'] ?? '';
             $nota = $resource['note'][0]['text'] ?? '';
             $specialitate = $resource['code']['text'] ?? '';
-            $detaliiTrimitere = trim("Specialitate: $specialitate. Motiv: $motiv. Note: $nota");
+            $detaliiRequest = trim("Specialitate: $specialitate. Motiv: $motiv. Note: $nota");
+            // Adaugăm la detalii fără să suprascriem posibilele erori SQL
+            $detaliiTrimitere = $detaliiRequest . $detaliiTrimitere; 
         }
     }
     
@@ -100,8 +116,8 @@ if ($json['resourceType'] === 'Bundle' && !empty($json['entry'])) {
 if (!isMockMode()) {
     try {
         $continut = $body;
-        if ($detaliiTrimitere) {
-            $continut = "Pacient: $numePacient (CNP: $cnpPacient)\n$detaliiTrimitere\n\n--- FHIR JSON ---\n$body";
+        if ($detaliiTrimitere || $numePacient) {
+            $continut = "Pacient: $numePacient (CNP: " . ($cnpPacient ?: 'Necunoscut') . ")\n$detaliiTrimitere\n\n--- FHIR JSON ---\n$body";
         }
         
         $stmt = db()->prepare('INSERT INTO Mesaje (tip_mesaj, sursa, destinatie, continut, moment_transmitere) VALUES (?, ?, ?, ?, GETDATE())');
@@ -118,6 +134,7 @@ if (!isMockMode()) {
             'cnp' => $cnpPacient
         ], 201);
     } catch (\PDOException $e) {
+        error_log('EROARE DB SALVARE MESAJ FHIR: ' . $e->getMessage());
         apiError('Eroare la salvare: ' . $e->getMessage(), 500);
     }
 } else {

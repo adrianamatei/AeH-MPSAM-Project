@@ -50,60 +50,68 @@ if ($idConsultatie) {
     }
 }
 
-// Trimitere efectiva
+// Trimitere efectiva - CORECTATĂ (Direct pe Internet, fără blocaj local)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireCsrf();
     $urlDest = trim($_POST['url_destinatie'] ?? '');
     $idCons = (int)($_POST['id_consultatie'] ?? 0);
+    $apiKey = trim($_POST['api_key'] ?? '');
+    $numeDestinatar = trim($_POST['nume_destinatar'] ?? 'Medic de familie');
     
     if (!$urlDest) {
         $error = 'Introdu URL-ul sistemului colegei.';
     } elseif (!$idCons) {
         $error = 'Selecteaza o consultatie.';
+    } elseif (!$fhirPreview) {
+        $error = 'Eroare: Mesajul FHIR nu a putut fi generat (lipsesc date din consultație).';
     } else {
-        // Trimitem prin API-ul nostru intern
-        $postData = json_encode([
-            'id_consultatie' => $idCons, 
-            'url_destinatie' => $urlDest,
-            'nume_destinatar' => trim($_POST['nume_destinatar'] ?? 'Medic de familie'),
-            'api_key' => trim($_POST['api_key'] ?? '')
-        ]);
-        
-        $ch = curl_init('http://localhost:8000/api/fhir_send.php');
+        // Configurăm header-ele FHIR cerute de standard
+        $headers = ['Content-Type: application/fhir+json', 'Accept: application/json'];
+        if ($apiKey) {
+            $headers[] = 'X-Api-Key: ' . $apiKey;
+        }
+
+        // Inițiem apelul direct către ngrok-ul colegei
+        $ch = curl_init($urlDest);
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $postData,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_POSTFIELDS => $fhirPreview, // Aruncăm direct JSON-ul generat mai sus
+            CURLOPT_HTTPHEADER => $headers,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 15,
+            CURLOPT_TIMEOUT => 30, // Îi lăsăm destul timp serverului extern să răspundă
+            CURLOPT_SSL_VERIFYPEER => false,
         ]);
+        
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
         
-        $result = json_decode($response, true);
-        
-        if ($result && ($result['success'] ?? false)) {
-            logCurrentUserAction('SEND_FHIR', 'Mesaje', $idCons, 'Scrisoare FHIR trimisa catre: ' . $urlDest);
-            flash('success', 'Scrisoarea medicala FHIR a fost trimisa cu succes!');
-            redirect(url('mesaje_hl7.php'));
+        // Salvăm copie locală în tabela Mesaje (pentru istoricul tău din mesaje_hl7.php)
+        if (!isMockMode()) {
+            $medic = MedicRepo::findById($idMedic);
+            $numeMedic = $medic ? 'Dr. ' . $medic['nume'] . ' ' . $medic['prenume'] : 'Medic';
+            try {
+                $stmt = db()->prepare('INSERT INTO Mesaje (tip_mesaj, sursa, destinatie, continut, moment_transmitere) VALUES (?, ?, ?, ?, GETDATE())');
+                $stmt->execute(['Scrisoare medicala', $numeMedic, $numeDestinatar, $fhirPreview]);
+            } catch (\PDOException $e) {
+                error_log("Eroare salvare mesaj local: " . $e->getMessage());
+            }
+        }
+
+        // Evaluăm rezultatul real întors de conexiunea directă
+        if ($curlError) {
+            $error = 'Eroare la conectarea directă cu colega: ' . $curlError;
+            flash('error', $error);
         } elseif ($httpCode >= 200 && $httpCode < 300) {
-            // Răspuns HTTP OK dar fără câmp "success" — tot e bine
-            logCurrentUserAction('SEND_FHIR', 'Mesaje', $idCons, 'Scrisoare FHIR trimisa catre: ' . $urlDest . ' (HTTP ' . $httpCode . ')');
-            flash('success', 'Scrisoarea medicala FHIR a fost trimisa cu succes! (HTTP ' . $httpCode . ')');
+            // Trimis și confirmat cu succes!
+            logCurrentUserAction('SEND_FHIR', 'Mesaje', $idCons, 'Scrisoare FHIR trimisa direct catre: ' . $urlDest);
+            flash('success', 'Scrisoarea medicala FHIR a fost trimisă cu succes la destinație!');
             redirect(url('mesaje_hl7.php'));
         } else {
-            $error = 'Eroare la trimitere: ' . ($result['error'] ?? $response ?? 'Raspuns necunoscut');
-            // Salvam oricum mesajul local
-            if (!isMockMode() && $fhirPreview) {
-                $medic = MedicRepo::findById($idMedic);
-                $numeMedic = $medic ? 'Dr. ' . $medic['nume'] . ' ' . $medic['prenume'] : 'Medic';
-                try {
-                    $stmt = db()->prepare('INSERT INTO Mesaje (tip_mesaj, sursa, destinatie, continut, moment_transmitere) VALUES (?, ?, ?, ?, GETDATE())');
-                    $stmt->execute(['Scrisoare medicala', $numeMedic, trim($_POST['nume_destinatar'] ?? 'Medic de familie'), $fhirPreview]);
-                } catch (\PDOException $e) {}
-            }
-            flash('warning', 'Mesajul a fost salvat local, dar trimiterea catre sistemul extern a esuat. Puteti reincerca.');
+            // A ajuns la ea, dar serverul ei a returnat un cod de eroare (400, 500, etc)
+            $error = 'Sistemul colegei a respins mesajul (HTTP ' . $httpCode . ')';
+            flash('warning', 'Răspuns primit de la serverul extern: ' . strip_tags($response));
         }
     }
 }

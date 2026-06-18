@@ -4,32 +4,26 @@ requireRole('medic');
 
 $tab = $_GET['tab'] ?? 'toate';
 
-// Funcție helper: caută medic după id_medic SAU id_utilizator
 function resolveMedicName($id) {
-    // Încearcă mai întâi ca id_medic
     $medic = MedicRepo::findById($id);
     if ($medic) {
-        $name = trim(($medic['nume'] ?? '') . ' ' . ($medic['prenume'] ?? ''));
-        return 'Dr. ' . $name;
+        return 'Dr. ' . trim(($medic['nume'] ?? '') . ' ' . ($medic['prenume'] ?? ''));
     }
-    // Încearcă ca id_utilizator
     $medic = MedicRepo::findByUtilizator($id);
     if ($medic) {
-        $name = trim(($medic['nume'] ?? '') . ' ' . ($medic['prenume'] ?? ''));
-        return 'Dr. ' . $name;
+        return 'Dr. ' . trim(($medic['nume'] ?? '') . ' ' . ($medic['prenume'] ?? ''));
     }
-    // Poate fi un pacient (după id)
     $pacient = PacientRepo::findById($id);
     if ($pacient) {
         return PacientRepo::fullName($pacient);
     }
-    // Poate fi un pacient (după id_utilizator)
     $pacient = PacientRepo::findByUtilizator($id);
     if ($pacient) {
         return PacientRepo::fullName($pacient);
     }
     return 'ID #' . $id;
 }
+
 $mesaje = match($tab) {
     'primite' => MesajHL7Repo::primite(),
     'trimise' => MesajHL7Repo::trimise(),
@@ -46,20 +40,19 @@ renderFlash();
         <h1>Mesaje HL7 / FHIR</h1>
     </div>
     <div class="page-actions">
-        <a href="<?= url('fhir_trimite.php') ?>" class="btn btn-primary">📤 Trimite scrisoare medicala</a>
+        <a href="<?= url('fhir_trimite.php') ?>" class="btn btn-primary">Trimite scrisoare medicala</a>
     </div>
 </div>
 
 <div class="tabs">
     <a href="?tab=toate" class="tab <?= $tab === 'toate' ? 'active' : '' ?>">Toate</a>
-    <a href="?tab=primite" class="tab <?= $tab === 'primite' ? 'active' : '' ?>">📥 Primite (trimiteri)</a>
-    <a href="?tab=trimise" class="tab <?= $tab === 'trimise' ? 'active' : '' ?>">📤 Trimise (scrisori medicale FHIR)</a>
+    <a href="?tab=primite" class="tab <?= $tab === 'primite' ? 'active' : '' ?>">Primite (trimiteri)</a>
+    <a href="?tab=trimise" class="tab <?= $tab === 'trimise' ? 'active' : '' ?>">Trimise (scrisori medicale)</a>
 </div>
 
 <?php if (empty($mesaje)): ?>
     <div class="card">
         <div class="empty-state">
-            <div class="empty-icon">✉</div>
             <h3>Niciun mesaj</h3>
         </div>
     </div>
@@ -67,7 +60,6 @@ renderFlash();
     <?php foreach ($mesaje as $m):
         $isPrimit = stripos($m['tip_mesaj'], 'trimitere') !== false;
         
-        // Rezolvă ID-uri în nume
         $sursaNume = $m['sursa'];
         $destNume = $m['destinatie'];
         if (is_numeric($m['sursa'])) {
@@ -80,7 +72,7 @@ renderFlash();
         <div class="card">
             <div class="card-header">
                 <div>
-                    <h3><?= $isPrimit ? '📥' : '📤' ?> <?= e($m['tip_mesaj']) ?></h3>
+                    <h3><?= $isPrimit ? 'Trimitere primita' : 'Scrisoare medicala trimisa' ?></h3>
                     <div class="text-small text-muted mt-1">
                         <?= e(formatDateTime($m['moment_transmitere'])) ?>
                     </div>
@@ -91,9 +83,11 @@ renderFlash();
                     <dt>De la</dt><dd><?= e($sursaNume) ?></dd>
                     <dt>Către</dt><dd><?= e($destNume) ?></dd>
                 </dl>
-                <div class="form-label">Conținut mesaj:</div>
-                <pre style="background: var(--gray-50); padding: var(--sp-3); border-radius: var(--radius-sm); 
-                            overflow-x: auto; font-size: 0.85rem; white-space: pre-wrap;"><?= e($m['continut']) ?></pre>
+                <details>
+                    <summary style="cursor:pointer; font-size:0.85rem; font-weight:600;">Vezi conținut mesaj</summary>
+                    <pre style="background: var(--gray-50); padding: var(--sp-3); border-radius: var(--radius-sm); 
+                                overflow-x: auto; font-size: 0.8rem; white-space: pre-wrap; max-height: 300px; margin-top: 8px;"><?= e($m['continut']) ?></pre>
+                </details>
             </div>
         </div>
     <?php endforeach; ?>
